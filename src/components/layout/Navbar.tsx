@@ -32,21 +32,13 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 bg-ink text-white shadow-md">
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
-        <button
-          type="button"
-          onClick={onOpenMenu}
-          className="flex h-10 w-10 items-center justify-center rounded-md text-white/90 hover:bg-white/10 lg:hidden"
-          aria-label="Open categories"
-        >
-          <MenuIcon />
-        </button>
-
         <Logo className="hidden sm:inline-flex" />
         <Logo variant="icon" className="sm:hidden" />
 
         <AllCategoriesMenu />
         <SearchBox className="min-w-0" />
 
+        {/* Desktop: Account / Saved / Cart */}
         <nav className="hidden items-center gap-1 md:flex">
           <Link
             href="/account"
@@ -68,38 +60,46 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           <button
             type="button"
             onClick={openDrawer}
-            className={`relative flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm font-semibold text-white hover:bg-white/10 ${
+            className={`relative rounded-md p-2 text-white hover:bg-white/10 ${
               bump ? "scale-105" : ""
             } transition`}
             aria-label={`Open cart, ${countLabel} items`}
           >
             <CartIcon />
-            <span>
-              Cart{" "}
-              <span
-                className={`inline-flex min-w-[1.25rem] justify-center rounded-full bg-brand px-1.5 py-0.5 text-[11px] font-bold text-ink ${
-                  bump ? "animate-pulse" : ""
-                }`}
-              >
-                {countLabel}
-              </span>
+            <span
+              className={`absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold leading-none text-ink ${
+                bump ? "animate-pulse" : ""
+              }`}
+            >
+              {countLabel}
             </span>
           </button>
         </nav>
 
-        <button
-          type="button"
-          onClick={openDrawer}
-          className={`relative flex h-10 items-center gap-1 rounded-md px-2 hover:bg-white/10 md:hidden ${
-            bump ? "scale-105" : ""
-          } transition`}
-          aria-label={`Cart, ${countLabel} items`}
-        >
-          <CartIcon />
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[11px] font-bold text-ink">
-            {countLabel}
-          </span>
-        </button>
+        {/* Mobile: cart then hamburger on the right */}
+        <div className="flex shrink-0 items-center gap-0.5 md:hidden">
+          <button
+            type="button"
+            onClick={openDrawer}
+            className={`relative flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/10 ${
+              bump ? "scale-105" : ""
+            } transition`}
+            aria-label={`Cart, ${countLabel} items`}
+          >
+            <CartIcon />
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-bold leading-none text-ink">
+              {countLabel}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            className="flex h-10 w-10 items-center justify-center rounded-md text-white/90 hover:bg-white/10"
+            aria-label="Open categories"
+          >
+            <MenuIcon />
+          </button>
+        </div>
       </div>
     </header>
   );
@@ -115,7 +115,7 @@ function MenuIcon() {
 
 function CartIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M7 7h14l-1.5 9h-11L7 7z"
         stroke="currentColor"

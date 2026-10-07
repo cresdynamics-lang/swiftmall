@@ -133,7 +133,7 @@ export default async function ProductPage({ params }: PageProps) {
               See all →
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

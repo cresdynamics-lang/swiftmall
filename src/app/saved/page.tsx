@@ -21,7 +21,7 @@ export default function SavedPage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           {items.map((p) => (
             <ProductCard key={p!.id} product={p!} />
           ))}

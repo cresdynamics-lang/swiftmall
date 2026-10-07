@@ -17,7 +17,7 @@ function SearchResults() {
         {q ? `Results for "${q}"` : "Search"}
       </h1>
       <p className="mt-1 text-sm text-ink/55">{results.length} products</p>
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3">
         {results.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}

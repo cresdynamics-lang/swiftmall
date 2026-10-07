@@ -24,7 +24,7 @@ export function RecentlyViewed() {
           Clear
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {items.slice(0, 4).map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}

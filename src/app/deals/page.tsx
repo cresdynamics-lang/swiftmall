@@ -15,7 +15,7 @@ export default function DealsPage() {
       <p className="mt-1 text-sm text-ink/55">
         Flash deals and discounted picks. Add to Cart on every card.
       </p>
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3">
         {deals.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}

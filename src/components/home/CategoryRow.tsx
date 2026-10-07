@@ -53,7 +53,7 @@ export function CategoryRow({ category }: { category: Category }) {
             {items.length === 0 ? (
               <p className="py-8 text-center text-sm text-ink/50">Products coming soon.</p>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3">
                 {items.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}

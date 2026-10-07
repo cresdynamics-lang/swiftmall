@@ -77,7 +77,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           No products in this view yet.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3">
           {items.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

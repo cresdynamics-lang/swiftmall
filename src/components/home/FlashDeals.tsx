@@ -37,7 +37,7 @@ export function FlashDeals() {
           See all deals →
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {deals.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}

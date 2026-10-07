@@ -25,7 +25,7 @@ export function ProductCard({ product }: { product: Product }) {
             alt={product.name}
             fill
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
+            sizes="50vw"
           />
         </Link>
         <div className="absolute left-2 top-2 flex flex-col gap-1">
