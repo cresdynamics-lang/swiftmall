@@ -43,7 +43,7 @@ export function HeroBanner({ slides }: { slides: HeroSlide[] }) {
 
   useEffect(() => {
     if (safeSlides.length < 2) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % safeSlides.length), 5000);
+    const id = setInterval(() => setIndex((i) => (i + 1) % safeSlides.length), 3000);
     return () => clearInterval(id);
   }, [safeSlides.length]);
 

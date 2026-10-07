@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/db";
-import { categories as staticCategories, type Category } from "@/lib/categories";
+import {
+  CATEGORY_IMAGES,
+  categories as staticCategories,
+  type Category,
+} from "@/lib/categories";
 
 const childrenBySlug = Object.fromEntries(
   staticCategories.map((c) => [c.slug, c.children]),
@@ -14,6 +18,7 @@ export async function listStoreCategories(): Promise<Category[]> {
     name: r.name,
     shortName: r.shortName,
     blurb: r.blurb,
+    image: CATEGORY_IMAGES[r.slug],
     children: childrenBySlug[r.slug],
   }));
 }
