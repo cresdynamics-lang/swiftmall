@@ -1,0 +1,90 @@
+export type CategoryChild = {
+  slug: string;
+  name: string;
+  children?: { slug: string; name: string }[];
+};
+
+export type Category = {
+  slug: string;
+  name: string;
+  shortName: string;
+  blurb: string;
+  children?: CategoryChild[];
+};
+
+export const categories: Category[] = [
+  {
+    slug: "health-and-beauty",
+    name: "Health & Beauty",
+    shortName: "Beauty",
+    blurb: "Skin, hair and wellness picks, delivered countrywide.",
+    children: [
+      { slug: "skincare", name: "Skincare" },
+      { slug: "hair-care", name: "Hair care" },
+      { slug: "wellness", name: "Wellness & supplements" },
+      { slug: "lips-masks", name: "Lips & face masks" },
+    ],
+  },
+  {
+    slug: "kitchen-and-home",
+    name: "Kitchen & Home Appliances",
+    shortName: "Kitchen",
+    blurb: "Cook, brew and serve.",
+  },
+  {
+    slug: "electronics",
+    name: "Electronics",
+    shortName: "Electr",
+    blurb: "Screens, sound and car gear.",
+  },
+  {
+    slug: "phones-and-accessories",
+    name: "Phones & Accessories",
+    shortName: "Phones",
+    blurb: "Handsets, earbuds and chargers.",
+  },
+  {
+    slug: "gifts-and-accessories",
+    name: "Gifts & Accessories",
+    shortName: "Gifts",
+    blurb: "Flowers, jewellery and presents.",
+  },
+  {
+    slug: "fashion",
+    name: "Fashion",
+    shortName: "Fashion",
+    blurb: "Men's and women's shoes, bags and more.",
+    children: [
+      {
+        slug: "mens-fashion",
+        name: "Men's Fashion",
+        children: [
+          { slug: "mens-shoes", name: "Shoes" },
+          { slug: "mens-clothing", name: "Clothing" },
+          { slug: "mens-watches", name: "Watches & Belts" },
+          { slug: "mens-bags", name: "Bags" },
+        ],
+      },
+      {
+        slug: "womens-fashion",
+        name: "Women's Fashion",
+        children: [
+          { slug: "womens-shoes", name: "Shoes & Sandals" },
+          { slug: "womens-clothing", name: "Clothing" },
+          { slug: "womens-handbags", name: "Handbags & Wallets" },
+          { slug: "womens-jewellery", name: "Jewellery" },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "others",
+    name: "Others",
+    shortName: "Others",
+    blurb: "Fitness and everything else.",
+  },
+];
+
+export function getCategory(slug: string) {
+  return categories.find((c) => c.slug === slug);
+}

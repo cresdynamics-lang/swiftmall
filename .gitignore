@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# local staging copies (canonical assets live in public/)
+/_brand_logos/
+/_product_photos/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -1,0 +1,31 @@
+"use client";
+
+import Link from "next/link";
+import { ProductCard } from "@/components/product/ProductCard";
+import { useSaved } from "@/context/SavedContext";
+import { products } from "@/lib/products";
+
+export default function SavedPage() {
+  const { ids } = useSaved();
+  const items = products.filter((p) => ids.includes(p.id));
+
+  return (
+    <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
+      <h1 className="font-display text-2xl font-bold text-ink">Saved items</h1>
+      {items.length === 0 ? (
+        <div className="mt-8 rounded-xl bg-white p-10 text-center ring-1 ring-ink/8">
+          <p className="text-ink/55">No saved items yet. Tap ♡ on any product card.</p>
+          <Link href="/" className="mt-4 inline-block text-sm font-semibold underline">
+            Browse products
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          {items.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
