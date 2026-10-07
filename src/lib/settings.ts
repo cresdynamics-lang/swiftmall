@@ -15,7 +15,15 @@ export type RuntimeSettings = {
   whatsappNumber: string;
   phoneNumber: string;
   contactEmail: string;
+  flashEndsAt: Date | null;
 };
+
+function defaultFlashEndsAt() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(23, 59, 0, 0);
+  return d;
+}
 
 const defaults: RuntimeSettings = {
   shippingFlatKes: storeConfig.shippingFlatKes,
@@ -30,15 +38,36 @@ const defaults: RuntimeSettings = {
   whatsappNumber: storeConfig.whatsappNumber,
   phoneNumber: storeConfig.phoneNumber,
   contactEmail: storeConfig.contactEmail,
+  flashEndsAt: null,
 };
 
 export async function ensureStoreSettings() {
-  return prisma.storeSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: {
+  const existing = await prisma.storeSettings.findUnique({ where: { id: "default" } });
+  if (existing) {
+    if (!existing.flashEndsAt) {
+      return prisma.storeSettings.update({
+        where: { id: "default" },
+        data: { flashEndsAt: defaultFlashEndsAt() },
+      });
+    }
+    return existing;
+  }
+  return prisma.storeSettings.create({
+    data: {
       id: "default",
-      ...defaults,
+      shippingFlatKes: defaults.shippingFlatKes,
+      depositShare: defaults.depositShare,
+      payOnOrder: defaults.payOnOrder,
+      depositEnabled: defaults.depositEnabled,
+      cashOnDelivery: defaults.cashOnDelivery,
+      payOnDelivery: defaults.payOnDelivery,
+      carriers: defaults.carriers,
+      paybill: defaults.paybill,
+      bankAccount: defaults.bankAccount,
+      whatsappNumber: defaults.whatsappNumber,
+      phoneNumber: defaults.phoneNumber,
+      contactEmail: defaults.contactEmail,
+      flashEndsAt: defaultFlashEndsAt(),
     },
   });
 }
@@ -59,6 +88,7 @@ export async function getStoreSettings(): Promise<RuntimeSettings> {
     whatsappNumber: row.whatsappNumber,
     phoneNumber: row.phoneNumber,
     contactEmail: row.contactEmail,
+    flashEndsAt: row.flashEndsAt ?? null,
   };
 }
 

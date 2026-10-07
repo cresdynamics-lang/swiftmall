@@ -148,20 +148,22 @@ model OrderItem {
 }
 
 model StoreSettings {
-  id              String   @id @default("default")
-  shippingFlatKes Int      @default(250)
-  depositShare    Float    @default(0.5)
-  payOnOrder      Boolean  @default(true)
-  depositEnabled  Boolean  @default(true)
-  cashOnDelivery  Boolean  @default(true)
-  payOnDelivery   Boolean  @default(true)
+  id              String    @id @default("default")
+  shippingFlatKes Int       @default(250)
+  depositShare    Float     @default(0.5)
+  payOnOrder      Boolean   @default(true)
+  depositEnabled  Boolean   @default(true)
+  cashOnDelivery  Boolean   @default(true)
+  payOnDelivery   Boolean   @default(true)
   carriers        String[]
-  paybill         String   @default("880100")
-  bankAccount     String   @default("9211670018")
-  whatsappNumber  String   @default("0727383847")
-  phoneNumber     String   @default("0727383847")
-  contactEmail    String   @default("orders@swiftmall.co.ke")
-  updatedAt       DateTime @updatedAt
+  paybill         String    @default("880100")
+  bankAccount     String    @default("9211670018")
+  whatsappNumber  String    @default("0727383847")
+  phoneNumber     String    @default("0727383847")
+  contactEmail    String    @default("orders@swiftmall.co.ke")
+  /** Real flash-sale end time — countdown never invents or auto-restarts */
+  flashEndsAt     DateTime?
+  updatedAt       DateTime  @updatedAt
 }
 
 model HomepageBanner {

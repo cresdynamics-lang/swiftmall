@@ -21,6 +21,7 @@ export function ProductActions({
   const { has, toggle } = useSaved();
   const router = useRouter();
   const needsSize = sizes.length > 0;
+  const outOfStock = stock <= 0;
 
   function ensureSize(): boolean {
     if (needsSize && !size) {
@@ -72,55 +73,54 @@ export function ProductActions({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center overflow-hidden rounded-md border border-ink/15 bg-white">
-          <button
-            type="button"
-            className="px-3 py-2.5 text-base"
-            onClick={() => setLocalQty((q) => Math.max(1, q - 1))}
-            aria-label="Decrease quantity"
-          >
-            -
-          </button>
-          <span className="min-w-8 text-center text-sm font-semibold">{qty}</span>
-          <button
-            type="button"
-            className="px-3 py-2.5 text-base"
-            onClick={() => setLocalQty((q) => Math.min(stock, q + 1))}
-            aria-label="Increase quantity"
-          >
-            +
-          </button>
-        </div>
+      <div className="inline-flex items-center overflow-hidden rounded-md border border-ink/15 bg-white">
         <button
           type="button"
-          disabled={stock <= 0}
+          className="px-3 py-2.5 text-base"
+          onClick={() => setLocalQty((q) => Math.max(1, q - 1))}
+          aria-label="Decrease quantity"
+          disabled={outOfStock}
+        >
+          -
+        </button>
+        <span className="min-w-8 text-center text-sm font-semibold">{qty}</span>
+        <button
+          type="button"
+          className="px-3 py-2.5 text-base"
+          onClick={() => setLocalQty((q) => Math.min(stock, q + 1))}
+          aria-label="Increase quantity"
+          disabled={outOfStock}
+        >
+          +
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          disabled={outOfStock}
+          onClick={buyNow}
+          className="rounded-md bg-ink px-4 py-3 text-sm font-semibold text-white hover:bg-ink/90 disabled:opacity-40"
+        >
+          Buy Now
+        </button>
+        <button
+          type="button"
+          disabled={outOfStock}
           onClick={addToCartOnly}
-          className="flex-1 rounded-md bg-brand px-5 py-2.5 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-40 sm:flex-none"
+          className="rounded-md bg-brand px-4 py-3 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-40"
         >
           Add to Cart
         </button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={stock <= 0}
-          onClick={buyNow}
-          className="rounded-md border border-ink/15 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-ink/[0.03] disabled:opacity-40"
-        >
-          Buy now
-        </button>
-        <button
-          type="button"
-          onClick={() => toggle(productId)}
-          className="rounded-md border border-ink/15 bg-white px-4 py-2.5 text-sm font-medium text-ink hover:bg-ink/[0.03]"
-        >
-          {has(productId) ? "Saved" : "Save"}
-        </button>
-      </div>
-      <p className="text-xs text-ink/45">
-        Items stay in your cart until you tap the cart icon. Buy now goes straight to checkout.
-      </p>
+
+      <button
+        type="button"
+        onClick={() => toggle(productId)}
+        className="text-sm font-medium text-ink/55 underline-offset-2 hover:text-ink hover:underline"
+      >
+        {has(productId) ? "Saved for later" : "Save for later"}
+      </button>
     </div>
   );
 }

@@ -36,3 +36,91 @@ body {
   background: color-mix(in srgb, var(--brand) 55%, white);
   color: var(--ink);
 }
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hero-offer-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes hero-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes hero-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+@keyframes hero-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.hero-rise {
+  display: inline-block;
+  animation: hero-rise 0.55s ease both;
+}
+.hero-rise-delay {
+  animation-delay: 80ms;
+}
+.hero-fade {
+  animation: hero-fade 0.5s ease 0.2s both;
+}
+.hero-fade-delay {
+  animation-delay: 0.35s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-rise-delay,
+  .hero-fade,
+  .hero-fade-delay {
+    animation: none !important;
+  }
+}

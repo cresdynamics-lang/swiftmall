@@ -2,44 +2,64 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSaved } from "@/context/SavedContext";
-import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
+import {
+  discountPercent,
+  formatKes,
+  isLowStock,
+  saveAmount,
+} from "@/lib/format";
 import type { Product } from "@/lib/product-types";
 
-export function ProductCard({ product }: { product: Product }) {
-  const { add, setQty, qtyFor } = useCart();
+export function ProductCard({
+  product,
+  variant = "default",
+}: {
+  product: Product;
+  /** flash = event card (one badge, Save line, stock bar ≤5) */
+  variant?: "default" | "flash";
+}) {
+  const { add } = useCart();
   const { has, toggle } = useSaved();
-  const qty = qtyFor(product.id);
+  const [added, setAdded] = useState(false);
   const discount = discountPercent(product.price, product.oldPrice);
-  const promo = offerTagLabel(product);
+  const save = saveAmount(product.price, product.oldPrice);
   const inStock = product.stock > 0;
-  const lowStock = product.stock > 0 && product.stock <= (product.lowStockAt ?? 3);
+  const low = isLowStock(product.stock, 5);
+  const needsSize = product.sizes.length > 0;
+  const photo = product.images[0] ?? "/products/p01.jpg";
+
+  useEffect(() => {
+    if (!added) return;
+    const t = setTimeout(() => setAdded(false), 2000);
+    return () => clearTimeout(t);
+  }, [added]);
+
+  function onAdd() {
+    if (needsSize) return;
+    add(product.id);
+    setAdded(true);
+  }
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-lg bg-white ring-1 ring-ink/8 transition hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="relative aspect-square overflow-hidden bg-ink/[0.03]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg bg-white ring-1 ring-ink/8 transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="relative aspect-square overflow-hidden bg-white">
         <Link href={`/product/${product.slug}`} className="absolute inset-0">
           <Image
-            src={product.images[0]}
+            src={photo}
             alt={product.name}
             fill
-            className="object-cover transition duration-300 group-hover:scale-[1.03]"
+            className="object-contain p-2 transition duration-300 group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 46vw, (max-width: 1024px) 28vw, 23vw"
           />
         </Link>
-        <div className="absolute left-2 top-2 flex flex-col gap-1">
-          {discount != null && (
-            <span className="w-fit rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-brand">
-              -{discount}%
-            </span>
-          )}
-          {promo && (
-            <span className="w-fit rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink">
-              {promo}
-            </span>
-          )}
-        </div>
+        {discount != null ? (
+          <span className="absolute left-2 top-2 w-fit rounded bg-brand px-1.5 py-0.5 text-[11px] font-bold text-ink">
+            -{discount}%
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={() => toggle(product.id)}
@@ -58,20 +78,40 @@ export function ProductCard({ product }: { product: Product }) {
           {product.name}
         </Link>
 
-        <div className="mt-2 flex items-baseline gap-2">
+        <div className="mt-2 flex flex-wrap items-baseline gap-2">
           <span className="font-display text-base font-bold text-ink">
             {formatKes(product.price)}
           </span>
-          {product.oldPrice ? (
+          {product.oldPrice && discount != null ? (
             <span className="text-xs text-ink/40 line-through">
               {formatKes(product.oldPrice)}
             </span>
           ) : null}
         </div>
 
-        <p className={`mt-1 text-xs ${inStock ? "text-stock" : "text-red-600"}`}>
-          {lowStock ? `Only ${product.stock} left` : inStock ? "In stock" : "Out of stock"}
-        </p>
+        {save != null ? (
+          <p className="mt-0.5 text-xs font-bold text-ink">Save {formatKes(save)}</p>
+        ) : null}
+
+        {inStock ? (
+          low ? (
+            <div className="mt-1.5">
+              <p className="text-xs font-semibold text-orange-600">
+                Only {product.stock} left
+              </p>
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-ink/10">
+                <div
+                  className="h-full rounded-full bg-ink"
+                  style={{ width: `${Math.max(8, (product.stock / 5) * 100)}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-stock">In stock</p>
+          )
+        ) : (
+          <p className="mt-1 text-xs text-red-600">Out of stock</p>
+        )}
 
         <div className="mt-auto pt-3">
           {!inStock ? (
@@ -80,43 +120,30 @@ export function ProductCard({ product }: { product: Product }) {
               disabled
               className="w-full rounded-md bg-ink/10 py-2.5 text-sm font-semibold text-ink/40"
             >
-              Out of stock
+              Sold out
             </button>
-          ) : product.sizes.length > 0 ? (
+          ) : needsSize ? (
             <Link
               href={`/product/${product.slug}`}
               className="block w-full rounded-md bg-brand py-2.5 text-center text-sm font-semibold text-ink transition hover:bg-brand-dark"
             >
               Choose size
             </Link>
-          ) : qty === 0 ? (
+          ) : added ? (
+            <Link
+              href="/cart"
+              className="block w-full rounded-md bg-ink py-2.5 text-center text-sm font-semibold text-brand"
+            >
+              ✓ Added · View cart
+            </Link>
+          ) : (
             <button
               type="button"
-              onClick={() => add(product.id)}
+              onClick={onAdd}
               className="w-full rounded-md bg-brand py-2.5 text-sm font-semibold text-ink transition hover:bg-brand-dark"
             >
               Add to Cart
             </button>
-          ) : (
-            <div className="flex items-center overflow-hidden rounded-md bg-brand">
-              <button
-                type="button"
-                onClick={() => setQty(product.id, qty - 1)}
-                className="px-3 py-2.5 text-base font-bold text-ink hover:bg-brand-dark"
-                aria-label="Decrease quantity"
-              >
-                -
-              </button>
-              <span className="flex-1 text-center text-sm font-semibold text-ink">{qty}</span>
-              <button
-                type="button"
-                onClick={() => setQty(product.id, qty + 1)}
-                className="px-3 py-2.5 text-base font-bold text-ink hover:bg-brand-dark"
-                aria-label="Increase quantity"
-              >
-                +
-              </button>
-            </div>
           )}
         </div>
       </div>

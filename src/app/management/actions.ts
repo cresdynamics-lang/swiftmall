@@ -203,6 +203,9 @@ export async function saveStoreSettings(formData: FormData) {
     .map((c) => c.trim())
     .filter(Boolean);
 
+  const flashRaw = String(formData.get("flashEndsAt") ?? "").trim();
+  const flashEndsAt = flashRaw ? new Date(flashRaw) : null;
+
   await prisma.storeSettings.update({
     where: { id: "default" },
     data: {
@@ -218,6 +221,8 @@ export async function saveStoreSettings(formData: FormData) {
       whatsappNumber: String(formData.get("whatsappNumber") ?? "").trim(),
       phoneNumber: String(formData.get("phoneNumber") ?? "").trim(),
       contactEmail: String(formData.get("contactEmail") ?? "").trim(),
+      flashEndsAt:
+        flashEndsAt && !Number.isNaN(flashEndsAt.getTime()) ? flashEndsAt : null,
     },
   });
 

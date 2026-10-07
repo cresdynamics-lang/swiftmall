@@ -52,6 +52,24 @@ export default async function AdminSettingsPage() {
             className="w-full rounded-md border border-ink/15 px-3 py-2.5"
           />
         </label>
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Flash deals end (local time)</span>
+          <input
+            name="flashEndsAt"
+            type="datetime-local"
+            defaultValue={
+              settings.flashEndsAt
+                ? new Date(settings.flashEndsAt.getTime() - settings.flashEndsAt.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16)
+                : ""
+            }
+            className="w-full rounded-md border border-ink/15 px-3 py-2.5"
+          />
+          <span className="mt-1 block text-xs text-ink/45">
+            Countdown uses this real end time. Clear and save to hide flash deals.
+          </span>
+        </label>
         <button
           type="submit"
           className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-ink"
