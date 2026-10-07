@@ -27,8 +27,12 @@ export const metadata: Metadata = {
   description:
     "Countrywide online store for health & beauty, home, electronics, phones, gifts and fashion. Shop · Pay · Delivered on swiftmall.co.ke.",
   icons: {
-    icon: storeConfig.logo.icon,
-    apple: storeConfig.logo.icon,
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/brand/logo-icon.jpg",
+    shortcut: "/favicon.ico",
   },
   metadataBase: new URL(`https://${storeConfig.domain}`),
 };
