@@ -35,7 +35,7 @@ const pages: Record<string, { title: string; body: string[] }> = {
     title: "Payment",
     body: [
       "Four options: Pay on order, Pay a deposit, Cash on delivery, Pay on delivery (M-Pesa to the rider).",
-      `Pay on order bank account: ${storeConfig.payments.bankAccount}. Paybill / Till will be added soon.`,
+      `Pay on order: M-Pesa Paybill ${storeConfig.payments.paybill}, account ${storeConfig.payments.bankAccount}. WhatsApp / call ${storeConfig.whatsappNumber}.`,
     ],
   },
   "how-to-order": {

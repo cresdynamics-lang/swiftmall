@@ -71,7 +71,7 @@ export default function CheckoutPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <Logo />
           <p className="text-xs text-white/70 sm:text-sm">
-            🔒 Secure checkout · Need help? WhatsApp
+            {`Secure checkout · WhatsApp / Call ${storeConfig.whatsappNumber}`}
           </p>
         </div>
       </header>
@@ -228,13 +228,16 @@ export default function CheckoutPage() {
                 </div>
                 {method === "pay_on_order" && (
                   <div className="mt-4 rounded-lg bg-ink/[0.04] p-3 text-sm text-ink/80">
-                    <p className="font-semibold text-ink">Bank transfer details</p>
+                    <p className="font-semibold text-ink">M-Pesa / bank payment details</p>
                     <p className="mt-1">
+                      Paybill: <strong>{storeConfig.payments.paybill}</strong>
+                    </p>
+                    <p className="mt-0.5">
                       Account: <strong>{storeConfig.payments.bankAccount}</strong>
                     </p>
-                    <p className="text-xs text-ink/50">
-                      Paybill / Till - coming soon. Use this account for now and share the
-                      confirmation.
+                    <p className="mt-2 text-xs text-ink/50">
+                      Pay and share the confirmation. Need help? WhatsApp / call{" "}
+                      {storeConfig.whatsappNumber}.
                     </p>
                   </div>
                 )}

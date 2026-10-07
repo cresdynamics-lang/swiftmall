@@ -4,7 +4,7 @@ const items = [
   { title: "Cash on delivery", hint: "Pay when it arrives" },
   { title: "Pay a deposit", hint: "Balance on delivery" },
   { title: `KES ${storeConfig.shippingFlatKes} shipping`, hint: "Countrywide, any county" },
-  { title: "WhatsApp support", hint: "Reply in minutes" },
+  { title: "WhatsApp / Call", hint: storeConfig.whatsappNumber },
 ];
 
 export function PromiseStrip() {

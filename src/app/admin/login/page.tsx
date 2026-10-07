@@ -16,17 +16,30 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
         <p className="mt-1 text-sm text-white/60">{storeConfig.domain}</p>
         <form action={adminLogin} className="mt-6 space-y-3">
           <label className="block text-sm">
-            <span className="mb-1 block text-white/80">Admin password</span>
+            <span className="mb-1 block text-white/80">Email</span>
+            <input
+              type="email"
+              name="email"
+              required
+              autoComplete="username"
+              defaultValue="martin@swiftmall.co.ke"
+              className="w-full rounded-md border-0 px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-brand"
+              placeholder="martin@swiftmall.co.ke"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-white/80">Password</span>
             <input
               type="password"
               name="password"
               required
+              autoComplete="current-password"
               className="w-full rounded-md border-0 px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-brand"
               placeholder="Password"
             />
           </label>
           {error ? (
-            <p className="text-sm text-red-300">Wrong password. Try again.</p>
+            <p className="text-sm text-red-300">Wrong email or password. Try again.</p>
           ) : null}
           <button
             type="submit"

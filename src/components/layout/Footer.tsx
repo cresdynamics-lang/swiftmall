@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { categories } from "@/lib/categories";
-import { storeConfig } from "@/lib/store-config";
+import { storeConfig, telHref, whatsappHref } from "@/lib/store-config";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -75,18 +75,21 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-white/75">
             <li>{storeConfig.contactEmail}</li>
             <li>
-              {storeConfig.whatsappNumber
-                ? `WhatsApp ${storeConfig.whatsappNumber}`
-                : "WhatsApp - number coming soon"}
+              <a href={whatsappHref()} className="hover:text-white" target="_blank" rel="noopener noreferrer">
+                WhatsApp {storeConfig.whatsappNumber}
+              </a>
+            </li>
+            <li>
+              <a href={telHref()} className="hover:text-white">
+                Call {storeConfig.phoneNumber}
+              </a>
             </li>
             <li className="pt-2 text-xs text-white/45">
               Carriers: {storeConfig.carriers.join(" · ")}
             </li>
             <li className="text-xs text-white/45">
-              Pay on order · Bank A/C {storeConfig.payments.bankAccount}
-              {storeConfig.payments.paybill
-                ? ` · Paybill ${storeConfig.payments.paybill}`
-                : " · Paybill TBA"}
+              Pay on order · Paybill {storeConfig.payments.paybill} · A/C{" "}
+              {storeConfig.payments.bankAccount}
             </li>
           </ul>
         </div>

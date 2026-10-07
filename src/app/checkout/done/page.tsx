@@ -16,12 +16,10 @@ export default function CheckoutDonePage() {
         </p>
         <h1 className="mt-4 font-display text-3xl font-bold text-ink">Order placed</h1>
         <p className="mt-3 text-sm text-ink/65">
-          We’ll confirm by email / WhatsApp. For Pay on order, send payment to bank account{" "}
-          <strong>{storeConfig.payments.bankAccount}</strong>
-          {storeConfig.payments.paybill
-            ? ` or Paybill ${storeConfig.payments.paybill}`
-            : " (Paybill coming soon)"}
-          .
+          We will confirm by email / WhatsApp ({storeConfig.whatsappNumber}). For Pay on
+          order, pay via M-Pesa Paybill <strong>{storeConfig.payments.paybill}</strong>{" "}
+          (account <strong>{storeConfig.payments.bankAccount}</strong>) and share the
+          confirmation.
         </p>
         <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link

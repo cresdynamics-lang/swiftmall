@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { storeConfig } from "@/lib/store-config";
+import { storeConfig, whatsappHref } from "@/lib/store-config";
 
 const blocks = [
   {
@@ -14,15 +14,13 @@ const blocks = [
   },
   {
     title: "Payment",
-    hint: "4 ways to pay",
+    hint: `Paybill ${storeConfig.payments.paybill}`,
     href: "/help/payment",
   },
   {
     title: "Questions?",
-    hint: "Chat on WhatsApp",
-    href: storeConfig.whatsappNumber
-      ? `https://wa.me/${storeConfig.whatsappNumber.replace(/\D/g, "")}`
-      : "/help",
+    hint: `WhatsApp ${storeConfig.whatsappNumber}`,
+    href: whatsappHref(),
   },
 ];
 
@@ -35,6 +33,9 @@ export function TrustStrip() {
             key={b.title}
             href={b.href}
             className="rounded-xl bg-white p-5 ring-1 ring-ink/8 transition hover:shadow-md"
+            {...(b.href.startsWith("http")
+              ? { target: "_blank", rel: "noopener noreferrer" }
+              : {})}
           >
             <p className="font-display text-base font-bold text-ink">{b.title}</p>
             <p className="mt-1 text-sm text-ink/55">{b.hint}</p>

@@ -9,11 +9,19 @@ import { prisma } from "@/lib/db";
 const AUTH_COOKIE = "swiftmall_admin";
 
 export async function adminLogin(formData: FormData) {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const expected = process.env.ADMIN_PASSWORD ?? "swiftmall-admin";
-  if (password !== expected) {
+  const expectedEmail = (
+    process.env.ADMIN_EMAIL ?? "martin@swiftmall.co.ke"
+  ).toLowerCase();
+  const expectedPassword = process.env.ADMIN_PASSWORD ?? "Martin$100";
+
+  if (email !== expectedEmail || password !== expectedPassword) {
     redirect("/admin/login?error=1");
   }
+
   const jar = await cookies();
   jar.set(AUTH_COOKIE, "1", {
     httpOnly: true,

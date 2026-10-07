@@ -111,10 +111,8 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
 
           <p className="mt-4 text-xs text-ink/45">
-            Pay on order · Bank A/C {storeConfig.payments.bankAccount}
-            {storeConfig.payments.paybill
-              ? ` · Paybill ${storeConfig.payments.paybill}`
-              : " · Paybill coming soon"}
+            Pay on order · Paybill {storeConfig.payments.paybill} · A/C{" "}
+            {storeConfig.payments.bankAccount} · WhatsApp / Call {storeConfig.whatsappNumber}
           </p>
 
           <div className="mt-8 rounded-xl bg-white p-5 ring-1 ring-ink/8">

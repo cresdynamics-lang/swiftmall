@@ -5,7 +5,9 @@ export const storeConfig = {
   currency: "KES",
   shippingFlatKes: 250,
   depositShare: 0.5,
-  whatsappNumber: "" as string,
+  /** Display / dial number for WhatsApp and calls */
+  whatsappNumber: "0727383847",
+  phoneNumber: "0727383847",
   contactEmail: "orders@swiftmall.co.ke",
   adminTitle: "Swiftmall Admin",
   payments: {
@@ -17,7 +19,7 @@ export const storeConfig = {
       "pay_on_delivery",
     ] as const,
     bankAccount: "9211670018",
-    paybill: null as string | null,
+    paybill: "880100",
   },
   carriers: ["Guardian Angel Coach", "Easy Coach", "Ena Coach"],
   logo: {
@@ -26,12 +28,30 @@ export const storeConfig = {
   },
 };
 
+/** Kenya mobile → international digits for wa.me / tel links */
+export function kenyaPhoneDigits(number: string): string {
+  const digits = number.replace(/\D/g, "");
+  if (digits.startsWith("254")) return digits;
+  if (digits.startsWith("0")) return `254${digits.slice(1)}`;
+  return digits;
+}
+
+export function whatsappHref(message?: string): string {
+  const n = kenyaPhoneDigits(storeConfig.whatsappNumber);
+  const base = `https://wa.me/${n}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}
+
+export function telHref(): string {
+  return `tel:+${kenyaPhoneDigits(storeConfig.phoneNumber)}`;
+}
+
 export type PaymentMethod = (typeof storeConfig.payments.methods)[number];
 
 export const paymentLabels: Record<PaymentMethod, { title: string; hint: string }> = {
   pay_on_order: {
     title: "Pay on order",
-    hint: "Bank transfer or M-Pesa now. We dispatch after payment.",
+    hint: "M-Pesa Paybill or bank transfer now. We dispatch after payment.",
   },
   deposit: {
     title: "Pay a deposit",

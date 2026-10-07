@@ -1,33 +1,23 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { storeConfig } from "@/lib/store-config";
+import { storeConfig, whatsappHref } from "@/lib/store-config";
 
 export function WhatsAppFloat({ productLabel }: { productLabel?: string }) {
   const pathname = usePathname();
   if (pathname.startsWith("/checkout") || pathname.startsWith("/admin")) return null;
 
-  const number = storeConfig.whatsappNumber.replace(/\D/g, "");
   const text = productLabel
     ? `Hi Swiftmall, I'm asking about: ${productLabel}`
     : "Hi Swiftmall, I have a question about an order / product.";
-  const href = number
-    ? `https://wa.me/${number}?text=${encodeURIComponent(text)}`
-    : "#";
 
   return (
     <a
-      href={href}
-      target={number ? "_blank" : undefined}
-      rel={number ? "noopener noreferrer" : undefined}
-      onClick={(e) => {
-        if (!number) {
-          e.preventDefault();
-          alert("WhatsApp number will be added soon.");
-        }
-      }}
+      href={whatsappHref(text)}
+      target="_blank"
+      rel="noopener noreferrer"
       className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 md:bottom-6"
-      aria-label="Chat on WhatsApp"
+      aria-label={`Chat on WhatsApp ${storeConfig.whatsappNumber}`}
     >
       <WhatsAppIcon />
       <span className="hidden sm:inline">Chat with us</span>
