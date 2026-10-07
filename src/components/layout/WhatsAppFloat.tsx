@@ -9,8 +9,8 @@ export function WhatsAppFloat({ productLabel }: { productLabel?: string }) {
 
   const number = storeConfig.whatsappNumber.replace(/\D/g, "");
   const text = productLabel
-    ? `Hi Swifmall, I’m asking about: ${productLabel}`
-    : "Hi Swifmall, I have a question about an order / product.";
+    ? `Hi Swiftmall, I'm asking about: ${productLabel}`
+    : "Hi Swiftmall, I have a question about an order / product.";
   const href = number
     ? `https://wa.me/${number}?text=${encodeURIComponent(text)}`
     : "#";

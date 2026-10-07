@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { products } from "@/lib/products";
+import { useProducts } from "@/context/ProductsContext";
 import { storeConfig } from "@/lib/store-config";
 
 export type CartLine = { productId: string; qty: number };
@@ -31,9 +31,10 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = "swifmall-cart";
+const STORAGE_KEY = "swiftmall-cart";
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { byId } = useProducts();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -92,10 +93,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const subtotal = useMemo(
     () =>
       lines.reduce((sum, l) => {
-        const p = products.find((x) => x.id === l.productId);
+        const p = byId(l.productId);
         return sum + (p?.price ?? 0) * l.qty;
       }, 0),
-    [lines],
+    [lines, byId],
   );
 
   const shipping = itemCount > 0 ? storeConfig.shippingFlatKes : 0;

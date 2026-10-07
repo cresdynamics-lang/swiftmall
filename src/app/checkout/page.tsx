@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useProducts } from "@/context/ProductsContext";
 import { Logo } from "@/components/layout/Logo";
 import { formatKes } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/counties";
-import { products } from "@/lib/products";
 import {
   paymentLabels,
   storeConfig,
@@ -17,6 +17,7 @@ import {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { byId } = useProducts();
   const { lines, itemCount, subtotal, shipping, total, clear } = useCart();
   const [method, setMethod] = useState<PaymentMethod>(storeConfig.payments.defaultMethod);
   const [submitted, setSubmitted] = useState(false);
@@ -42,11 +43,14 @@ export default function CheckoutPage() {
     () =>
       lines
         .map((l) => {
-          const p = products.find((x) => x.id === l.productId);
+          const p = byId(l.productId);
           return p ? { product: p, qty: l.qty } : null;
         })
-        .filter(Boolean) as { product: (typeof products)[0]; qty: number }[],
-    [lines],
+        .filter(Boolean) as {
+        product: NonNullable<ReturnType<typeof byId>>;
+        qty: number;
+      }[],
+    [lines, byId],
   );
 
   function onSubmit(e: React.FormEvent) {

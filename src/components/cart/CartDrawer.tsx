@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useProducts } from "@/context/ProductsContext";
 import { formatKes } from "@/lib/format";
-import { products } from "@/lib/products";
 import { storeConfig } from "@/lib/store-config";
 
 export function CartDrawer() {
+  const { byId } = useProducts();
   const { lines, itemCount, subtotal, shipping, total, drawerOpen, closeDrawer, setQty, remove } =
     useCart();
 
@@ -50,7 +51,7 @@ export function CartDrawer() {
           ) : (
             <ul className="space-y-4">
               {lines.map((line) => {
-                const p = products.find((x) => x.id === line.productId);
+                const p = byId(line.productId);
                 if (!p) return null;
                 return (
                   <li key={line.productId} className="flex gap-3">
@@ -76,7 +77,6 @@ export function CartDrawer() {
                             type="button"
                             className="px-2 py-1 text-sm"
                             onClick={() => setQty(line.productId, line.qty - 1)}
-                            aria-label="Decrease"
                           >
                             -
                           </button>
@@ -85,7 +85,6 @@ export function CartDrawer() {
                             type="button"
                             className="px-2 py-1 text-sm"
                             onClick={() => setQty(line.productId, line.qty + 1)}
-                            aria-label="Increase"
                           >
                             +
                           </button>

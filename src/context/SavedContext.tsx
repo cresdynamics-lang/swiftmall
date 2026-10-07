@@ -18,7 +18,7 @@ type SavedContextValue = {
 };
 
 const SavedContext = createContext<SavedContextValue | null>(null);
-const STORAGE_KEY = "swifmall-saved";
+const STORAGE_KEY = "swiftmall-saved";
 
 export function SavedProvider({ children }: { children: ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);

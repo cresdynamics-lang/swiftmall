@@ -3,12 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useProducts } from "@/context/ProductsContext";
 import { useSaved } from "@/context/SavedContext";
 import { formatKes } from "@/lib/format";
-import { products } from "@/lib/products";
 import { storeConfig } from "@/lib/store-config";
 
 export default function CartPage() {
+  const { byId } = useProducts();
   const { lines, itemCount, subtotal, shipping, total, setQty, remove } = useCart();
   const { toggle } = useSaved();
   const deposit = Math.round(total * storeConfig.depositShare);
@@ -41,7 +42,7 @@ export default function CartPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-3">
             {lines.map((line) => {
-              const p = products.find((x) => x.id === line.productId);
+              const p = byId(line.productId);
               if (!p) return null;
               return (
                 <div
@@ -59,7 +60,7 @@ export default function CartPage() {
                       {p.name}
                     </Link>
                     <p className="mt-1 text-xs text-stock">
-                      {p.stock <= 3 ? `Only ${p.stock} left` : "✓ In stock"}
+                      {p.stock <= 3 ? `Only ${p.stock} left` : "In stock"}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-3">
                       <div className="inline-flex items-center rounded border border-ink/15">
@@ -68,7 +69,7 @@ export default function CartPage() {
                           className="px-2.5 py-1"
                           onClick={() => setQty(line.productId, line.qty - 1)}
                         >
-                          −
+                          -
                         </button>
                         <span className="min-w-6 text-center text-sm">{line.qty}</span>
                         <button
@@ -94,7 +95,7 @@ export default function CartPage() {
                         }}
                         className="text-xs text-ink/45 hover:text-ink"
                       >
-                        ♡ Save for later
+                        Save for later
                       </button>
                     </div>
                   </div>

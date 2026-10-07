@@ -23,7 +23,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const gender =
     genderParam === "mens" || genderParam === "womens" ? genderParam : undefined;
-  const items = getProductsByCategory(slug, gender);
+  const items = await getProductsByCategory(slug, gender);
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">

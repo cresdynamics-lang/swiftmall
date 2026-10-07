@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { formatKes } from "@/lib/format";
-import { getProduct } from "@/lib/products";
+import { useEffect, useMemo, useState } from "react";
+import { useProducts } from "@/context/ProductsContext";
+import { formatKes, offerTagLabel } from "@/lib/format";
 
 const slides = [
   {
@@ -16,8 +16,6 @@ const slides = [
     cta: "Shop Health & Beauty →",
     tile1: "3-in-1-breakfast-maker",
     tile2: "skyworth-65-qled-google-tv",
-    tile1Tag: "-19% today",
-    tile2Tag: "-17% this week",
   },
   {
     department: "Kitchen & Home",
@@ -28,8 +26,6 @@ const slides = [
     cta: "Shop Kitchen & Home →",
     tile1: "ceramic-cup-saucer-set-6",
     tile2: "3-in-1-breakfast-maker",
-    tile1Tag: "New",
-    tile2Tag: "-19% today",
   },
   {
     department: "Electronics",
@@ -40,12 +36,11 @@ const slides = [
     cta: "Shop Electronics →",
     tile1: "ecomax-2-1-multimedia-bluetooth-speakers",
     tile2: "car-jump-starter-air-compressor-kit",
-    tile1Tag: "In stock",
-    tile2Tag: "Kit deal",
   },
 ];
 
 export function HeroBanner() {
+  const { bySlug } = useProducts();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -54,12 +49,20 @@ export function HeroBanner() {
   }, []);
 
   const slide = slides[index];
-  const t1 = getProduct(slide.tile1);
-  const t2 = getProduct(slide.tile2);
+  const t1 = bySlug(slide.tile1);
+  const t2 = bySlug(slide.tile2);
+
+  const tiles = useMemo(
+    () =>
+      [
+        { product: t1, fallback: "Featured" },
+        { product: t2, fallback: "On offer" },
+      ].filter((t) => t.product),
+    [t1, t2],
+  );
 
   return (
     <section className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-      {/* Kilimall-style: department hero left */}
       <div className="relative min-h-[240px] overflow-hidden rounded-xl bg-ink text-white sm:min-h-[320px]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,196,0,0.28),_transparent_55%)]" />
         <div className="relative z-10 flex h-full flex-col justify-end p-5 sm:p-8">
@@ -94,13 +97,11 @@ export function HeroBanner() {
         </div>
       </div>
 
-      {/* Two offer tiles stacked (Kilimall) */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-2">
-        {[
-          { product: t1, tag: slide.tile1Tag },
-          { product: t2, tag: slide.tile2Tag },
-        ].map(({ product, tag }) =>
-          product ? (
+        {tiles.map(({ product, fallback }) => {
+          if (!product) return null;
+          const tag = offerTagLabel(product) ?? fallback;
+          return (
             <Link
               key={product.id}
               href={`/product/${product.slug}`}
@@ -124,8 +125,8 @@ export function HeroBanner() {
                 </p>
               </div>
             </Link>
-          ) : null,
-        )}
+          );
+        })}
       </div>
     </section>
   );

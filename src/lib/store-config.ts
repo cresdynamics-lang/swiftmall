@@ -1,12 +1,13 @@
 export const storeConfig = {
-  name: "Swifmall",
+  name: "Swiftmall",
   tagline: "Shopping Redefined",
   domain: "swiftmall.co.ke",
   currency: "KES",
   shippingFlatKes: 250,
   depositShare: 0.5,
-  whatsappNumber: "" as string, // owner to provide
+  whatsappNumber: "" as string,
   contactEmail: "orders@swiftmall.co.ke",
+  adminTitle: "Swiftmall Admin",
   payments: {
     defaultMethod: "pay_on_order" as const,
     methods: [
@@ -15,8 +16,7 @@ export const storeConfig = {
       "cash_on_delivery",
       "pay_on_delivery",
     ] as const,
-    /** Bank account for Pay on order (Paybill coming later). Rechecked. */
-    bankAccount: "9211670018", // 10 digits as provided
+    bankAccount: "9211670018",
     paybill: null as string | null,
   },
   carriers: ["Guardian Angel Coach", "Easy Coach", "Ena Coach"],

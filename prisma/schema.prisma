@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OfferTag {
+  NONE
+  TODAY
+  THIS_WEEK
+  NEW
+}
+
+enum Gender {
+  MENS
+  WOMENS
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  shortName String
+  blurb     String
+  sortOrder Int       @default(0)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  description  String    @default("")
+  brand        String?
+  subCategory  String?
+  sku          String?
+  price        Int
+  oldPrice     Int?
+  stock        Int       @default(0)
+  lowStockAt   Int       @default(3)
+  images       String[]
+  flashDeal    Boolean   @default(false)
+  featured     Boolean   @default(false)
+  live         Boolean   @default(true)
+  offerTag     OfferTag  @default(NONE)
+  gender       Gender?
+  categoryId   String
+  category     Category  @relation(fields: [categoryId], references: [id])
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([categoryId])
+  @@index([live, flashDeal])
+  @@index([offerTag])
+}

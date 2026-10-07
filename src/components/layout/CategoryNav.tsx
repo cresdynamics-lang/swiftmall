@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
 import { categories, type Category } from "@/lib/categories";
 import { discountPercent, formatKes } from "@/lib/format";
@@ -50,8 +51,9 @@ function CategoryHoverItem({
   onOpen: () => void;
   onClose: () => void;
 }) {
+  const { products } = useProducts();
   const hasSubs = Boolean(category.children?.length);
-  const offer = getCategoryOffer(category.slug);
+  const offer = getCategoryOffer(products, category.slug);
   const discount = offer ? discountPercent(offer.price, offer.oldPrice) : null;
 
   return (

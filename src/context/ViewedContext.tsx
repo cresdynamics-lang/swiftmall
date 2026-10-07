@@ -9,7 +9,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { products, type Product } from "@/lib/products";
+import { useProducts } from "@/context/ProductsContext";
+import type { Product } from "@/lib/product-types";
 
 type ViewedContextValue = {
   ids: string[];
@@ -19,10 +20,11 @@ type ViewedContextValue = {
 };
 
 const ViewedContext = createContext<ViewedContextValue | null>(null);
-const STORAGE_KEY = "swifmall-viewed";
+const STORAGE_KEY = "swiftmall-viewed";
 const MAX = 12;
 
 export function ViewedProvider({ children }: { children: ReactNode }) {
+  const { byId } = useProducts();
   const [ids, setIds] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
@@ -51,11 +53,8 @@ export function ViewedProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => setIds([]), []);
 
   const items = useMemo(
-    () =>
-      ids
-        .map((id) => products.find((p) => p.id === id))
-        .filter(Boolean) as Product[],
-    [ids],
+    () => ids.map((id) => byId(id)).filter(Boolean) as Product[],
+    [ids, byId],
   );
 
   const value = useMemo(

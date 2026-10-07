@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
-import { products } from "@/lib/products";
+import { useProducts } from "@/context/ProductsContext";
 
 function useCountdown(hoursFromNow = 2) {
   const [remaining, setRemaining] = useState(hoursFromNow * 3600);
@@ -20,7 +20,8 @@ function useCountdown(hoursFromNow = 2) {
 }
 
 export function FlashDeals() {
-  const deals = products.filter((p) => p.flashDeal).slice(0, 4);
+  const { products } = useProducts();
+  const deals = products.filter((p) => p.flashDeal || p.offerTag !== "NONE").slice(0, 4);
   const clock = useCountdown(2);
 
   return (

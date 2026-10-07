@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
+import { useProducts } from "@/context/ProductsContext";
 import type { Category } from "@/lib/categories";
-import { getProductsByCategory } from "@/lib/products";
 
 export function CategoryRow({ category }: { category: Category }) {
+  const { byCategory } = useProducts();
   const isFashion = category.slug === "fashion";
   const [gender, setGender] = useState<"mens" | "womens" | undefined>(
     isFashion ? "mens" : undefined,
   );
-  const items = getProductsByCategory(category.slug, gender).slice(0, 6);
+  const items = byCategory(category.slug, gender).slice(0, 6);
 
   return (
     <section className="mx-auto max-w-7xl px-3 py-4 sm:px-4">
@@ -44,7 +45,7 @@ export function CategoryRow({ category }: { category: Category }) {
                         : "bg-ink/[0.05] text-ink/70 hover:bg-ink/10"
                     }`}
                   >
-                    {g === "mens" ? "Men’s" : "Women’s"}
+                    {g === "mens" ? "Men's" : "Women's"}
                   </button>
                 ))}
               </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { SiteShell } from "@/components/layout/SiteShell";
+import { listLiveProducts } from "@/lib/products";
 import { storeConfig } from "@/lib/store-config";
 import "./globals.css";
 
@@ -22,18 +23,21 @@ export const metadata: Metadata = {
     template: `%s | ${storeConfig.name}`,
   },
   description:
-    "Countrywide online store for health & beauty, home, electronics, phones, gifts and fashion. Shop · Pay · Delivered.",
+    "Countrywide online store for health & beauty, home, electronics, phones, gifts and fashion. Shop · Pay · Delivered on swiftmall.co.ke.",
   icons: {
     icon: storeConfig.logo.icon,
     apple: storeConfig.logo.icon,
   },
+  metadataBase: new URL(`https://${storeConfig.domain}`),
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const products = await listLiveProducts();
+
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <Providers>
+        <Providers products={products}>
           <SiteShell>{children}</SiteShell>
         </Providers>
       </body>

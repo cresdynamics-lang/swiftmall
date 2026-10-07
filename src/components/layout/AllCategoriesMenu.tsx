@@ -3,11 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
 import { categories, type Category } from "@/lib/categories";
 import { discountPercent, formatKes } from "@/lib/format";
 
 export function AllCategoriesMenu() {
+  const { products } = useProducts();
   const [open, setOpen] = useState(false);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -61,7 +63,13 @@ export function AllCategoriesMenu() {
             ))}
           </ul>
           <div className="w-[280px] p-3">
-            {active ? <CategoryPanel category={active} onNavigate={() => setOpen(false)} /> : (
+            {active ? (
+              <CategoryPanel
+                category={active}
+                products={products}
+                onNavigate={() => setOpen(false)}
+              />
+            ) : (
               <p className="px-2 py-6 text-center text-sm text-ink/45">
                 Hover a department
               </p>
@@ -75,12 +83,14 @@ export function AllCategoriesMenu() {
 
 function CategoryPanel({
   category,
+  products,
   onNavigate,
 }: {
   category: Category;
+  products: import("@/lib/product-types").Product[];
   onNavigate: () => void;
 }) {
-  const offer = getCategoryOffer(category.slug);
+  const offer = getCategoryOffer(products, category.slug);
   const discount = offer ? discountPercent(offer.price, offer.oldPrice) : null;
   const hasSubs = Boolean(category.children?.length);
 

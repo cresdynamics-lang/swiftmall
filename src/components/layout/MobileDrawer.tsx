@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
 import { categories } from "@/lib/categories";
 import { formatKes } from "@/lib/format";
@@ -13,6 +14,7 @@ type MobileDrawerProps = {
 };
 
 export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
+  const { products } = useProducts();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (!open) return null;
@@ -40,7 +42,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
         <nav className="flex-1 overflow-y-auto py-2">
           {categories.map((cat) => {
             const isOpen = expanded === cat.slug;
-            const offer = getCategoryOffer(cat.slug);
+            const offer = getCategoryOffer(products, cat.slug);
             const hasKids = Boolean(cat.children?.length);
 
             return (

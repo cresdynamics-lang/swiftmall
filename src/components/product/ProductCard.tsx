@@ -4,16 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useSaved } from "@/context/SavedContext";
-import { discountPercent, formatKes } from "@/lib/format";
-import type { Product } from "@/lib/products";
+import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
+import type { Product } from "@/lib/product-types";
 
 export function ProductCard({ product }: { product: Product }) {
   const { add, setQty, qtyFor } = useCart();
   const { has, toggle } = useSaved();
   const qty = qtyFor(product.id);
   const discount = discountPercent(product.price, product.oldPrice);
+  const promo = offerTagLabel(product);
   const inStock = product.stock > 0;
-  const lowStock = product.stock > 0 && product.stock <= 3;
+  const lowStock = product.stock > 0 && product.stock <= (product.lowStockAt ?? 3);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-lg bg-white ring-1 ring-ink/8 transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -27,11 +28,18 @@ export function ProductCard({ product }: { product: Product }) {
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
           />
         </Link>
-        {discount != null && (
-          <span className="absolute left-2 top-2 rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-brand">
-            -{discount}%
-          </span>
-        )}
+        <div className="absolute left-2 top-2 flex flex-col gap-1">
+          {discount != null && (
+            <span className="w-fit rounded bg-ink px-1.5 py-0.5 text-[11px] font-bold text-brand">
+              -{discount}%
+            </span>
+          )}
+          {promo && (
+            <span className="w-fit rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink">
+              {promo}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => toggle(product.id)}
@@ -43,19 +51,26 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="flex flex-1 flex-col p-3">
-        <Link href={`/product/${product.slug}`} className="line-clamp-2 text-sm font-medium leading-snug text-ink hover:underline">
+        <Link
+          href={`/product/${product.slug}`}
+          className="line-clamp-2 text-sm font-medium leading-snug text-ink hover:underline"
+        >
           {product.name}
         </Link>
 
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-base font-bold text-ink">{formatKes(product.price)}</span>
+          <span className="font-display text-base font-bold text-ink">
+            {formatKes(product.price)}
+          </span>
           {product.oldPrice ? (
-            <span className="text-xs text-ink/40 line-through">{formatKes(product.oldPrice)}</span>
+            <span className="text-xs text-ink/40 line-through">
+              {formatKes(product.oldPrice)}
+            </span>
           ) : null}
         </div>
 
         <p className={`mt-1 text-xs ${inStock ? "text-stock" : "text-red-600"}`}>
-          {lowStock ? `Only ${product.stock} left` : inStock ? "✓ In stock" : "Out of stock"}
+          {lowStock ? `Only ${product.stock} left` : inStock ? "In stock" : "Out of stock"}
         </p>
 
         <div className="mt-auto pt-3">
@@ -108,7 +123,7 @@ function Heart({ filled }: { filled: boolean }) {
       <path
         d="M12 21s-7.2-4.35-9.6-8.4C.6 9.3 2.1 6 5.4 6c1.8 0 3.3 1.05 3.9 2.55C9.9 7.05 11.4 6 13.2 6c3.3 0 4.8 3.3 3 6.6C19.2 16.65 12 21 12 21z"
         fill={filled ? "#FFC400" : "none"}
-        stroke={filled ? "#0B0B0B" : "#0B0B0B"}
+        stroke="#0B0B0B"
         strokeWidth="1.6"
       />
     </svg>

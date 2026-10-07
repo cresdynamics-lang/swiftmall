@@ -3,16 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useProducts } from "@/context/ProductsContext";
 import { categories } from "@/lib/categories";
 import { formatKes } from "@/lib/format";
-import { searchProducts } from "@/lib/products";
 
 export function SearchBox({ className = "" }: { className?: string }) {
+  const { search } = useProducts();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  const results = useMemo(() => searchProducts(q, 6), [q]);
+  const results = useMemo(() => search(q, 6), [q, search]);
   const matchingCats = useMemo(() => {
     const lower = q.trim().toLowerCase();
     if (lower.length < 2) return [];

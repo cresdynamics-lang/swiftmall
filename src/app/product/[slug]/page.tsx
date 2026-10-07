@@ -5,7 +5,7 @@ import { ProductActions } from "@/components/product/ProductActions";
 import { ProductCard } from "@/components/product/ProductCard";
 import { TrackView } from "@/components/product/TrackView";
 import { getCategory } from "@/lib/categories";
-import { discountPercent, formatKes } from "@/lib/format";
+import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
 import { getProduct, getProductsByCategory } from "@/lib/products";
 import { paymentLabels, storeConfig } from "@/lib/store-config";
 
@@ -13,18 +13,19 @@ type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   return { title: product?.name ?? "Product" };
 }
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
   const cat = getCategory(product.category);
   const discount = discountPercent(product.price, product.oldPrice);
-  const related = getProductsByCategory(product.category)
+  const promo = offerTagLabel(product);
+  const related = (await getProductsByCategory(product.category))
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
 
@@ -53,20 +54,28 @@ export default async function ProductPage({ params }: PageProps) {
             sizes="(max-width: 1024px) 100vw, 50vw"
             priority
           />
-          {discount != null && (
-            <span className="absolute left-3 top-3 rounded bg-ink px-2 py-1 text-xs font-bold text-brand">
-              -{discount}%
-            </span>
-          )}
+          <div className="absolute left-3 top-3 flex flex-col gap-1">
+            {discount != null && (
+              <span className="w-fit rounded bg-ink px-2 py-1 text-xs font-bold text-brand">
+                -{discount}%
+              </span>
+            )}
+            {promo && (
+              <span className="w-fit rounded bg-brand px-2 py-1 text-xs font-bold uppercase text-ink">
+                {promo}
+              </span>
+            )}
+          </div>
         </div>
 
         <div>
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{product.name}</h1>
           <p className="mt-2 text-sm text-ink/55">
             Category: {cat?.name}
-            {product.brand ? ` · ${product.brand}` : ""} ·{" "}
+            {product.brand ? ` · ${product.brand}` : ""}
+            {product.sku ? ` · Code: ${product.sku}` : ""} ·{" "}
             <span className="text-stock">
-              {product.stock > 0 ? `✓ In stock (${product.stock})` : "Out of stock"}
+              {product.stock > 0 ? `In stock (${product.stock})` : "Out of stock"}
             </span>
           </p>
 
@@ -81,6 +90,7 @@ export default async function ProductPage({ params }: PageProps) {
                 </span>
                 <span className="text-sm font-semibold text-stock">
                   Save {formatKes(product.oldPrice - product.price)}
+                  {discount != null ? ` (-${discount}%)` : ""}
                 </span>
               </>
             ) : null}
