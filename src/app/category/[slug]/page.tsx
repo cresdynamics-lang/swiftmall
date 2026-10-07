@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product/ProductCard";
-import { getCategory } from "@/lib/categories";
+import { getStoreCategory } from "@/lib/categories-db";
 import { getProductsByCategory } from "@/lib/products";
 
 type PageProps = {
@@ -11,14 +11,14 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const cat = getCategory(slug);
+  const cat = await getStoreCategory(slug);
   return { title: cat?.name ?? "Category" };
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const { gender: genderParam } = await searchParams;
-  const cat = getCategory(slug);
+  const cat = await getStoreCategory(slug);
   if (!cat) notFound();
 
   const gender =

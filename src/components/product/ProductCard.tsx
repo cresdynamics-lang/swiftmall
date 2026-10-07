@@ -25,7 +25,7 @@ export function ProductCard({ product }: { product: Product }) {
             alt={product.name}
             fill
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
-            sizes="50vw"
+            sizes="(max-width: 640px) 46vw, (max-width: 1024px) 28vw, 23vw"
           />
         </Link>
         <div className="absolute left-2 top-2 flex flex-col gap-1">
@@ -82,6 +82,13 @@ export function ProductCard({ product }: { product: Product }) {
             >
               Out of stock
             </button>
+          ) : product.sizes.length > 0 ? (
+            <Link
+              href={`/product/${product.slug}`}
+              className="block w-full rounded-md bg-brand py-2.5 text-center text-sm font-semibold text-ink transition hover:bg-brand-dark"
+            >
+              Choose size
+            </Link>
           ) : qty === 0 ? (
             <button
               type="button"

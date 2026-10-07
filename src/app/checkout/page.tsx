@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { submitCheckout } from "@/app/checkout/actions";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import { Logo } from "@/components/layout/Logo";
@@ -15,12 +16,15 @@ import {
   type PaymentMethod,
 } from "@/lib/store-config";
 
+const CHECKOUT_METHODS = storeConfig.payments.methods;
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { byId } = useProducts();
   const { lines, itemCount, subtotal, shipping, total, clear } = useCart();
   const [method, setMethod] = useState<PaymentMethod>(storeConfig.payments.defaultMethod);
-  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -28,41 +32,51 @@ export default function CheckoutPage() {
     county: "Nairobi",
     town: "",
     address: "",
-    carrier: "",
   });
 
   const depositNow = Math.round(total * storeConfig.depositShare);
+  const mpesaAmount = method === "deposit" ? depositNow : total;
+  const needsMpesa = method === "pay_now" || method === "deposit";
+
   const payLabel =
     method === "deposit"
-      ? `Place Order · Deposit ${formatKes(depositNow)}`
-      : method === "pay_on_order"
-        ? `Place Order · Pay ${formatKes(total)}`
-        : `Place Order · ${formatKes(total)} on delivery`;
+      ? `Submit order · Deposit ${formatKes(depositNow)}`
+      : method === "pay_now"
+        ? `Submit order · Pay ${formatKes(total)}`
+        : `Submit order · Cash on delivery`;
 
   const lineItems = useMemo(
     () =>
       lines
         .map((l) => {
           const p = byId(l.productId);
-          return p ? { product: p, qty: l.qty } : null;
+          return p ? { product: p, qty: l.qty, size: l.size } : null;
         })
         .filter(Boolean) as {
         product: NonNullable<ReturnType<typeof byId>>;
         qty: number;
+        size?: string;
       }[],
     [lines, byId],
   );
 
-  function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (lines.length === 0) return;
-    setSubmitted(true);
-    clear();
-    router.push("/checkout/done");
-  }
-
-  if (submitted) {
-    return null;
+    setError(null);
+    const fd = new FormData(e.currentTarget);
+    fd.set("lines", JSON.stringify(lines));
+    fd.set("paymentMethod", method);
+    startTransition(async () => {
+      try {
+        const result = await submitCheckout(fd);
+        const email = encodeURIComponent(form.email.trim().toLowerCase());
+        clear();
+        router.push(`/checkout/done?order=${result.orderNumber}&email=${email}`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not place order");
+      }
+    });
   }
 
   return (
@@ -78,52 +92,30 @@ export default function CheckoutPage() {
 
       <div className="mx-auto max-w-5xl px-3 py-6 sm:px-4">
         <p className="mb-4 text-sm font-medium text-ink/50">
-          <Link href="/cart" className="hover:text-ink">
-            1 Cart
+          <Link href="/" className="hover:text-ink" onClick={() => {}}>
+            Continue browsing
           </Link>
           <span className="mx-2">›</span>
-          <span className="text-ink">2 Checkout</span>
+          <span className="text-ink">Checkout</span>
           <span className="mx-2">›</span>
-          <span>3 Done</span>
+          <span>Done</span>
         </p>
 
         {itemCount === 0 ? (
           <div className="rounded-xl bg-white p-10 text-center ring-1 ring-ink/8">
             <p className="text-ink/60">Nothing to check out yet.</p>
             <Link href="/" className="mt-4 inline-block text-sm font-semibold text-ink underline">
-              Continue Shopping
+              Continue Browsing
             </Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-5">
-              <div className="rounded-xl bg-white p-4 ring-1 ring-ink/8 sm:p-5">
-                <div className="mb-4 flex flex-wrap gap-2 text-sm">
-                  <span className="rounded-full bg-brand px-3 py-1 font-semibold text-ink">
-                    Checkout as guest
-                  </span>
-                  <Link
-                    href="/account"
-                    className="rounded-full bg-ink/[0.05] px-3 py-1 text-ink/70"
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    href="/account"
-                    className="rounded-full bg-ink/[0.05] px-3 py-1 text-ink/70"
-                  >
-                    Create account
-                  </Link>
-                </div>
-                <p className="text-xs text-ink/45">
-                  An account saves your details for next time. It is never required.
-                </p>
-              </div>
-
               <fieldset className="rounded-xl bg-white p-4 ring-1 ring-ink/8 sm:p-5">
                 <legend className="font-display text-base font-bold text-ink">1 Your details</legend>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Field
+                    name="name"
                     label="Full name *"
                     value={form.name}
                     onChange={(v) => setForm({ ...form, name: v })}
@@ -132,6 +124,7 @@ export default function CheckoutPage() {
                     className="sm:col-span-2"
                   />
                   <Field
+                    name="phone"
                     label="Phone number *"
                     value={form.phone}
                     onChange={(v) => setForm({ ...form, phone: v })}
@@ -140,6 +133,7 @@ export default function CheckoutPage() {
                     required
                   />
                   <Field
+                    name="email"
                     label="Email address *"
                     value={form.email}
                     onChange={(v) => setForm({ ...form, email: v })}
@@ -156,6 +150,7 @@ export default function CheckoutPage() {
                   <label className="block text-sm sm:col-span-1">
                     <span className="mb-1 block font-medium text-ink/80">County *</span>
                     <select
+                      name="county"
                       required
                       value={form.county}
                       onChange={(e) => setForm({ ...form, county: e.target.value })}
@@ -169,6 +164,7 @@ export default function CheckoutPage() {
                     </select>
                   </label>
                   <Field
+                    name="town"
                     label="Town / area *"
                     value={form.town}
                     onChange={(v) => setForm({ ...form, town: v })}
@@ -176,6 +172,7 @@ export default function CheckoutPage() {
                     required
                   />
                   <Field
+                    name="address"
                     label="Delivery address *"
                     value={form.address}
                     onChange={(v) => setForm({ ...form, address: v })}
@@ -183,14 +180,11 @@ export default function CheckoutPage() {
                     required
                     className="sm:col-span-2"
                   />
-                  <Field
-                    label="Preferred carrier or pick-up point (outside Nairobi)"
-                    value={form.carrier}
-                    onChange={(v) => setForm({ ...form, carrier: v })}
-                    placeholder="e.g. Guardian Angel Coach, Easy Coach..."
-                    className="sm:col-span-2"
-                  />
                 </div>
+                <p className="mt-3 text-xs text-ink/50">
+                  We arrange shipping and will contact you on WhatsApp or phone with delivery
+                  updates.
+                </p>
               </fieldset>
 
               <fieldset className="rounded-xl bg-white p-4 ring-1 ring-ink/8 sm:p-5">
@@ -198,7 +192,7 @@ export default function CheckoutPage() {
                   3 How would you like to pay?
                 </legend>
                 <div className="mt-3 space-y-2">
-                  {(Object.keys(paymentLabels) as PaymentMethod[]).map((key) => (
+                  {CHECKOUT_METHODS.map((key) => (
                     <label
                       key={key}
                       className={`flex cursor-pointer gap-3 rounded-lg border p-3 ${
@@ -218,6 +212,7 @@ export default function CheckoutPage() {
                         <span className="block text-sm font-semibold text-ink">
                           {paymentLabels[key].title}
                           {key === "deposit" ? ` · ${formatKes(depositNow)} now` : ""}
+                          {key === "pay_now" ? ` · ${formatKes(total)}` : ""}
                         </span>
                         <span className="block text-xs text-ink/55">
                           {paymentLabels[key].hint}
@@ -226,29 +221,46 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
-                {method === "pay_on_order" && (
-                  <div className="mt-4 rounded-lg bg-ink/[0.04] p-3 text-sm text-ink/80">
-                    <p className="font-semibold text-ink">M-Pesa / bank payment details</p>
-                    <p className="mt-1">
-                      Paybill: <strong>{storeConfig.payments.paybill}</strong>
+
+                {needsMpesa ? (
+                  <div className="mt-4 rounded-lg bg-ink p-4 text-sm text-white">
+                    <p className="font-display text-base font-bold text-brand">
+                      Pay via M-Pesa
                     </p>
-                    <p className="mt-0.5">
-                      Account: <strong>{storeConfig.payments.bankAccount}</strong>
-                    </p>
-                    <p className="mt-2 text-xs text-ink/50">
-                      Pay and share the confirmation. Need help? WhatsApp / call{" "}
-                      {storeConfig.whatsappNumber}.
+                    <ol className="mt-3 list-decimal space-y-2 pl-5 text-white/90">
+                      <li>Go to M-Pesa on your phone</li>
+                      <li>Select Lipa na M-Pesa</li>
+                      <li>Select Pay Bill</li>
+                      <li>
+                        Business number:{" "}
+                        <strong className="text-brand">{storeConfig.payments.paybill}</strong>
+                      </li>
+                      <li>
+                        Account number:{" "}
+                        <strong className="text-brand">{storeConfig.payments.bankAccount}</strong>
+                      </li>
+                      <li>
+                        Amount:{" "}
+                        <strong className="text-brand">{formatKes(mpesaAmount)}</strong>
+                        {method === "deposit" ? " (deposit)" : ""}
+                      </li>
+                      <li>Enter your M-Pesa PIN and confirm</li>
+                    </ol>
+                    <p className="mt-3 text-xs text-white/55">
+                      After paying, submit your order below. We will confirm payment and arrange
+                      delivery.
                     </p>
                   </div>
-                )}
+                ) : null}
               </fieldset>
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
             </div>
 
             <aside className="h-fit rounded-xl bg-white p-5 ring-1 ring-ink/8 lg:sticky lg:top-6">
               <h2 className="font-display text-base font-bold text-ink">Your order</h2>
               <ul className="mt-3 space-y-3">
-                {lineItems.map(({ product, qty }) => (
-                  <li key={product.id} className="flex gap-2 text-sm">
+                {lineItems.map(({ product, qty, size }) => (
+                  <li key={`${product.id}:${size ?? ""}`} className="flex gap-2 text-sm">
                     <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded bg-ink/[0.04]">
                       <Image
                         src={product.images[0]}
@@ -260,7 +272,10 @@ export default function CheckoutPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 font-medium text-ink">{product.name}</p>
-                      <p className="text-xs text-ink/50">Qty {qty}</p>
+                      <p className="text-xs text-ink/50">
+                        Qty {qty}
+                        {size ? ` · ${size}` : ""}
+                      </p>
                     </div>
                     <p className="font-semibold">{formatKes(product.price * qty)}</p>
                   </li>
@@ -282,20 +297,17 @@ export default function CheckoutPage() {
               </div>
               <button
                 type="submit"
-                className="mt-4 w-full rounded-md bg-brand py-3 text-sm font-semibold text-ink hover:bg-brand-dark"
+                disabled={pending}
+                className="mt-4 w-full rounded-md bg-brand py-3 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-60"
               >
-                {payLabel}
+                {pending ? "Submitting…" : payLabel}
               </button>
               <Link
                 href="/"
                 className="mt-2 block text-center text-sm font-medium text-ink/70 hover:text-ink"
               >
-                ← Continue Shopping
+                Continue Browsing
               </Link>
-              <p className="mt-3 text-[11px] leading-relaxed text-ink/45">
-                By placing the order you agree to the terms and allow us to contact you about this
-                order. Your details are used only for delivery.
-              </p>
             </aside>
           </form>
         )}
@@ -305,6 +317,7 @@ export default function CheckoutPage() {
 }
 
 function Field({
+  name,
   label,
   value,
   onChange,
@@ -313,6 +326,7 @@ function Field({
   required,
   className = "",
 }: {
+  name: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
@@ -325,6 +339,7 @@ function Field({
     <label className={`block text-sm ${className}`}>
       <span className="mb-1 block font-medium text-ink/80">{label}</span>
       <input
+        name={name}
         type={type}
         value={value}
         required={required}

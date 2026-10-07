@@ -9,13 +9,14 @@ import { MobileDrawer } from "./MobileDrawer";
 import { MobileTabBar } from "./MobileTabBar";
 import { Navbar } from "./Navbar";
 import { TopStrip } from "./TopStrip";
+import { TawkChat } from "./TawkChat";
 import { WhatsAppFloat } from "./WhatsAppFloat";
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const checkoutMode = pathname.startsWith("/checkout");
-  const adminMode = pathname.startsWith("/admin");
+  const adminMode = pathname.startsWith("/management");
 
   if (adminMode) {
     return <>{children}</>;
@@ -39,7 +40,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <Footer />
       <MobileTabBar />
-      <WhatsAppFloat />
+      {/* Prefer tawk.to when configured; WhatsApp float stays as fallback */}
+      {process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID ? <TawkChat /> : <WhatsAppFloat />}
       <CartDrawer />
     </>
   );

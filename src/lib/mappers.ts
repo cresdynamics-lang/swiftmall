@@ -26,5 +26,6 @@ export function mapProduct(row: DbProductWithCategory): Product {
     gender: row.gender
       ? ((row.gender === "MENS" ? "mens" : "womens") as Gender)
       : undefined,
+    sizes: row.sizes ?? [],
   };
 }

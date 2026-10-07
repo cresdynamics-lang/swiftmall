@@ -7,7 +7,7 @@ const pages: Record<string, { title: string; body: string[] }> = {
     title: "Delivery",
     body: [
       `We deliver countrywide for a flat KES ${storeConfig.shippingFlatKes}.`,
-      `Carriers include ${storeConfig.carriers.join(", ")}. Outside Nairobi, tell us your preferred pick-up point at checkout.`,
+      "Enter your county, town and address at checkout. We arrange shipping and will contact you on WhatsApp or phone with delivery updates.",
     ],
   },
   returns: {
@@ -34,15 +34,15 @@ const pages: Record<string, { title: string; body: string[] }> = {
   payment: {
     title: "Payment",
     body: [
-      "Four options: Pay on order, Pay a deposit, Cash on delivery, Pay on delivery (M-Pesa to the rider).",
-      `Pay on order: M-Pesa Paybill ${storeConfig.payments.paybill}, account ${storeConfig.payments.bankAccount}. WhatsApp / call ${storeConfig.whatsappNumber}.`,
+      "Three options at checkout: Pay a deposit, Pay now, or Cash on delivery.",
+      `Pay now / deposit: M-Pesa → Lipa na M-Pesa → Pay Bill → Business number ${storeConfig.payments.paybill}, account ${storeConfig.payments.bankAccount}. WhatsApp / call ${storeConfig.whatsappNumber}.`,
     ],
   },
   "how-to-order": {
     title: "How to order",
     body: [
-      "Browse by department or search, tap Add to Cart on any card, then Checkout as guest.",
-      "Enter name, phone, email, county and address. Pick how you want to pay. Place Order.",
+      "Browse, tap Add to Cart, then open the cart when you are ready.",
+      "Choose Proceed to Order, enter your delivery details, pick Pay a deposit, Pay now, or Cash on delivery, then submit.",
     ],
   },
 };

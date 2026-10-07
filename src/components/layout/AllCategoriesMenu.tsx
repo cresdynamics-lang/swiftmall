@@ -3,12 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useCategories } from "@/context/CategoriesContext";
 import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
-import { categories, type Category } from "@/lib/categories";
+import type { Category } from "@/lib/categories";
 import { discountPercent, formatKes } from "@/lib/format";
 
 export function AllCategoriesMenu() {
+  const categories = useCategories();
   const { products } = useProducts();
   const [open, setOpen] = useState(false);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);

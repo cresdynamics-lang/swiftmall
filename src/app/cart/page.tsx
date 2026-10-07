@@ -6,14 +6,10 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import { useSaved } from "@/context/SavedContext";
 import { formatKes } from "@/lib/format";
-import { storeConfig } from "@/lib/store-config";
-
 export default function CartPage() {
   const { byId } = useProducts();
   const { lines, itemCount, subtotal, shipping, total, setQty, remove } = useCart();
   const { toggle } = useSaved();
-  const deposit = Math.round(total * storeConfig.depositShare);
-
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
       <p className="mb-4 text-sm font-medium text-ink/50">
@@ -44,9 +40,10 @@ export default function CartPage() {
             {lines.map((line) => {
               const p = byId(line.productId);
               if (!p) return null;
+              const lineKey = `${line.productId}:${line.size ?? ""}`;
               return (
                 <div
-                  key={line.productId}
+                  key={lineKey}
                   className="flex gap-3 rounded-xl bg-white p-3 ring-1 ring-ink/8 sm:p-4"
                 >
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-ink/[0.04]">
@@ -59,6 +56,9 @@ export default function CartPage() {
                     >
                       {p.name}
                     </Link>
+                    {line.size ? (
+                      <p className="mt-0.5 text-xs font-medium text-ink/60">Size: {line.size}</p>
+                    ) : null}
                     <p className="mt-1 text-xs text-stock">
                       {p.stock <= 3 ? `Only ${p.stock} left` : "In stock"}
                     </p>
@@ -67,7 +67,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           className="px-2.5 py-1"
-                          onClick={() => setQty(line.productId, line.qty - 1)}
+                          onClick={() => setQty(line.productId, line.qty - 1, line.size)}
                         >
                           -
                         </button>
@@ -75,14 +75,14 @@ export default function CartPage() {
                         <button
                           type="button"
                           className="px-2.5 py-1"
-                          onClick={() => setQty(line.productId, line.qty + 1)}
+                          onClick={() => setQty(line.productId, line.qty + 1, line.size)}
                         >
                           +
                         </button>
                       </div>
                       <button
                         type="button"
-                        onClick={() => remove(line.productId)}
+                        onClick={() => remove(line.productId, line.size)}
                         className="text-xs text-ink/45 hover:text-ink"
                       >
                         Remove
@@ -91,7 +91,7 @@ export default function CartPage() {
                         type="button"
                         onClick={() => {
                           toggle(line.productId);
-                          remove(line.productId);
+                          remove(line.productId, line.size);
                         }}
                         className="text-xs text-ink/45 hover:text-ink"
                       >
@@ -129,19 +129,18 @@ export default function CartPage() {
                 <span>{formatKes(total)}</span>
               </div>
             </div>
-            <p className="mt-3 text-xs text-ink/55">
-              Pay a deposit instead: {formatKes(deposit)} now, the balance on delivery. Choose at
-              checkout.
-            </p>
             <Link
               href="/checkout"
               className="mt-4 block rounded-md bg-brand py-3 text-center text-sm font-semibold text-ink hover:bg-brand-dark"
             >
-              Proceed to Checkout →
+              Proceed to Order
             </Link>
-            <p className="mt-2 text-center text-xs text-ink/45">
-              Guest checkout available · no account needed
-            </p>
+            <Link
+              href="/"
+              className="mt-2 block rounded-md border border-ink/15 py-3 text-center text-sm font-semibold text-ink hover:bg-ink/[0.03]"
+            >
+              Continue Browsing
+            </Link>
           </aside>
         </div>
       )}

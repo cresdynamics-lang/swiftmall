@@ -1,8 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { saveProduct } from "@/app/admin/actions";
+import { saveProduct } from "@/app/management/actions";
 import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
+import {
+  SIZE_PRESET_OPTIONS,
+  detectSizePreset,
+  type SizePreset,
+} from "@/lib/product-sizes";
 import { OFFER_TAG_OPTIONS, type OfferTag, type Product } from "@/lib/product-types";
 
 type CategoryOption = { slug: string; name: string };
@@ -21,6 +27,15 @@ export function ProductForm({
     product?.oldPrice != null ? String(product.oldPrice) : "",
   );
   const [offerTag, setOfferTag] = useState<OfferTag>(product?.offerTag ?? "NONE");
+  const [sizePreset, setSizePreset] = useState<SizePreset>(
+    detectSizePreset(product?.sizes ?? []),
+  );
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
+  const [customSizes, setCustomSizes] = useState(
+    detectSizePreset(product?.sizes ?? []) === "CUSTOM"
+      ? (product?.sizes ?? []).join(", ")
+      : "",
+  );
 
   const priceNum = Number(price) || 0;
   const oldNum = oldPrice ? Number(oldPrice) : undefined;
@@ -32,20 +47,41 @@ export function ProductForm({
   });
 
   const imageDefault = product?.images?.[0] ?? "/products/p01.jpg";
+  const presetMeta = SIZE_PRESET_OPTIONS.find((o) => o.value === sizePreset);
 
   const preview = useMemo(
     () => ({
       pct,
       promo: previewTag,
-      save:
-        oldNum && oldNum > priceNum ? formatKes(oldNum - priceNum) : null,
+      save: oldNum && oldNum > priceNum ? formatKes(oldNum - priceNum) : null,
     }),
     [pct, previewTag, oldNum, priceNum],
   );
 
+  function onPresetChange(next: SizePreset) {
+    setSizePreset(next);
+    const meta = SIZE_PRESET_OPTIONS.find((o) => o.value === next);
+    if (next === "NONE") {
+      setSelectedSizes([]);
+      setCustomSizes("");
+    } else if (next === "CUSTOM") {
+      setSelectedSizes([]);
+    } else if (meta?.options.length) {
+      // Default: all sizes on for the chart; admin can uncheck
+      setSelectedSizes([...meta.options]);
+    }
+  }
+
+  function toggleSize(size: string) {
+    setSelectedSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
+    );
+  }
+
   return (
     <form action={saveProduct} className="grid gap-6 lg:grid-cols-[1fr_280px]">
       {product?.id ? <input type="hidden" name="id" value={product.id} /> : null}
+      <input type="hidden" name="sizePreset" value={sizePreset} />
 
       <div className="space-y-4 rounded-xl bg-white p-5 ring-1 ring-ink/8">
         <h2 className="font-display text-lg font-bold">
@@ -182,10 +218,92 @@ export function ProductForm({
               className={fieldClass}
             >
               <option value="">None</option>
-              <option value="MENS">Men's</option>
-              <option value="WOMENS">Women's</option>
+              <option value="MENS">Men&apos;s</option>
+              <option value="WOMENS">Women&apos;s</option>
             </select>
           </Field>
+        </div>
+
+        <div className="rounded-lg border border-ink/10 bg-ink/[0.02] p-4">
+          <Field label="Size chart">
+            <select
+              value={sizePreset}
+              onChange={(e) => onPresetChange(e.target.value as SizePreset)}
+              className={fieldClass}
+            >
+              {SIZE_PRESET_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <p className="mt-1 text-xs text-ink/50">{presetMeta?.hint}</p>
+
+          {sizePreset === "SHOE_EU" || sizePreset === "TEDDY_CM" ? (
+            <div className="mt-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium text-ink/80">
+                  Available sizes ({selectedSizes.length})
+                </p>
+                <div className="flex gap-2 text-xs">
+                  <button
+                    type="button"
+                    className="font-semibold text-ink underline"
+                    onClick={() => setSelectedSizes([...(presetMeta?.options ?? [])])}
+                  >
+                    Select all
+                  </button>
+                  <button
+                    type="button"
+                    className="font-semibold text-ink/50 underline"
+                    onClick={() => setSelectedSizes([])}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div className="flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
+                {(presetMeta?.options ?? []).map((size) => {
+                  const on = selectedSizes.includes(size);
+                  return (
+                    <label
+                      key={size}
+                      className={`cursor-pointer rounded-md border px-2.5 py-1.5 text-xs font-semibold ${
+                        on
+                          ? "border-brand bg-brand/20 text-ink"
+                          : "border-ink/15 bg-white text-ink/55 hover:border-ink/30"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="sizes"
+                        value={size}
+                        checked={on}
+                        onChange={() => toggleSize(size)}
+                        className="sr-only"
+                      />
+                      {size}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {sizePreset === "CUSTOM" ? (
+            <div className="mt-3">
+              <Field label="Custom sizes (comma-separated)">
+                <input
+                  name="customSizes"
+                  value={customSizes}
+                  onChange={(e) => setCustomSizes(e.target.value)}
+                  placeholder="e.g. S, M, L, XL"
+                  className={fieldClass}
+                />
+              </Field>
+            </div>
+          ) : null}
         </div>
 
         <Field label="Primary image path">
@@ -220,12 +338,23 @@ export function ProductForm({
           </label>
         </div>
 
-        <button
-          type="submit"
-          className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-ink hover:bg-brand-dark"
-        >
-          Save product
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="submit"
+            className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-ink hover:bg-brand-dark"
+          >
+            Save product
+          </button>
+          {product?.slug ? (
+            <Link
+              href={`/product/${product.slug}`}
+              target="_blank"
+              className="rounded-md border border-ink px-5 py-3 text-sm font-semibold hover:bg-ink/5"
+            >
+              Preview on site
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <aside className="h-fit rounded-xl bg-white p-4 ring-1 ring-ink/8">
@@ -256,12 +385,19 @@ export function ProductForm({
         {preview.save ? (
           <p className="mt-2 text-xs text-stock">Save {preview.save}</p>
         ) : null}
+        {sizePreset !== "NONE" ? (
+          <p className="mt-3 text-xs text-ink/55">
+            Shoppers pick a size at checkout:{" "}
+            {sizePreset === "CUSTOM"
+              ? customSizes || "—"
+              : selectedSizes.slice(0, 6).join(", ") +
+                (selectedSizes.length > 6 ? ` +${selectedSizes.length - 6} more` : "")}
+          </p>
+        ) : null}
         <p className="mt-4 text-xs leading-relaxed text-ink/55">
-          Discount % is calculated from price vs old price. Offer tags map to hero chips:
-          Today, This week, or New - same labels shoppers see on cards and product pages.
+          Shoes use EU 26A–46. Gift teddies use cm heights. Tick only the sizes you stock.
         </p>
       </aside>
-
     </form>
   );
 }

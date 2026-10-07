@@ -21,6 +21,8 @@ export type Product = {
   live: boolean;
   offerTag: OfferTag;
   gender?: Gender;
+  /** Available sizes shoppers can pick (shoes EU, teddy cm, or custom) */
+  sizes: string[];
 };
 
 export const OFFER_TAG_OPTIONS: { value: OfferTag; label: string }[] = [

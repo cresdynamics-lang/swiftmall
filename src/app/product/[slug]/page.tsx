@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductActions } from "@/components/product/ProductActions";
 import { ProductCard } from "@/components/product/ProductCard";
 import { TrackView } from "@/components/product/TrackView";
-import { getCategory } from "@/lib/categories";
+import { getStoreCategory } from "@/lib/categories-db";
 import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
 import { getProduct, getProductsByCategory } from "@/lib/products";
 import { paymentLabels, storeConfig } from "@/lib/store-config";
@@ -22,7 +22,7 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const cat = getCategory(product.category);
+  const cat = await getStoreCategory(product.category);
   const discount = discountPercent(product.price, product.oldPrice);
   const promo = offerTagLabel(product);
   const related = (await getProductsByCategory(product.category))
@@ -96,12 +96,16 @@ export default async function ProductPage({ params }: PageProps) {
             ) : null}
           </div>
           <p className="mt-2 text-sm text-ink/55">
-            Plus KES {storeConfig.shippingFlatKes} shipping at checkout · Pay a deposit available
+            Plus KES {storeConfig.shippingFlatKes} shipping at checkout · Cash on delivery available
           </p>
 
-          <ProductActions productId={product.id} stock={product.stock} />
+          <ProductActions
+            productId={product.id}
+            stock={product.stock}
+            sizes={product.sizes}
+          />
 
-          <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <div className="mt-6 grid gap-2 sm:grid-cols-3">
             {(Object.keys(paymentLabels) as Array<keyof typeof paymentLabels>).map((key) => (
               <div key={key} className="rounded-lg bg-white p-3 ring-1 ring-ink/8">
                 <p className="text-sm font-semibold text-ink">{paymentLabels[key].title}</p>
@@ -111,7 +115,7 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
 
           <p className="mt-4 text-xs text-ink/45">
-            Pay on order · Paybill {storeConfig.payments.paybill} · A/C{" "}
+            M-Pesa Paybill {storeConfig.payments.paybill} · A/C{" "}
             {storeConfig.payments.bankAccount} · WhatsApp / Call {storeConfig.whatsappNumber}
           </p>
 

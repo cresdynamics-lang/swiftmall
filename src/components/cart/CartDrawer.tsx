@@ -54,7 +54,7 @@ export function CartDrawer() {
                 const p = byId(line.productId);
                 if (!p) return null;
                 return (
-                  <li key={line.productId} className="flex gap-3">
+                  <li key={`${line.productId}:${line.size ?? ""}`} className="flex gap-3">
                     <Link
                       href={`/product/${p.slug}`}
                       onClick={closeDrawer}
@@ -70,13 +70,16 @@ export function CartDrawer() {
                       >
                         {p.name}
                       </Link>
+                      {line.size ? (
+                        <p className="text-xs text-ink/55">Size: {line.size}</p>
+                      ) : null}
                       <p className="mt-0.5 text-sm font-semibold">{formatKes(p.price)}</p>
                       <div className="mt-2 flex items-center gap-2">
                         <div className="inline-flex items-center rounded border border-ink/15">
                           <button
                             type="button"
                             className="px-2 py-1 text-sm"
-                            onClick={() => setQty(line.productId, line.qty - 1)}
+                            onClick={() => setQty(line.productId, line.qty - 1, line.size)}
                           >
                             -
                           </button>
@@ -84,14 +87,14 @@ export function CartDrawer() {
                           <button
                             type="button"
                             className="px-2 py-1 text-sm"
-                            onClick={() => setQty(line.productId, line.qty + 1)}
+                            onClick={() => setQty(line.productId, line.qty + 1, line.size)}
                           >
                             +
                           </button>
                         </div>
                         <button
                           type="button"
-                          onClick={() => remove(line.productId)}
+                          onClick={() => remove(line.productId, line.size)}
                           className="text-xs text-ink/45 hover:text-ink"
                         >
                           Remove
@@ -106,34 +109,30 @@ export function CartDrawer() {
               })}
             </ul>
           )}
+
+          {lines.length > 0 ? (
+            <div className="mt-6 space-y-1 border-t border-ink/10 pt-4 text-sm">
+              <div className="flex justify-between text-ink/70">
+                <span>Subtotal ({itemCount} items)</span>
+                <span>{formatKes(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-ink/70">
+                <span>Shipping (flat)</span>
+                <span>{formatKes(shipping)}</span>
+              </div>
+              <p className="text-[11px] text-ink/45">
+                Flat rate KES {storeConfig.shippingFlatKes} countrywide
+              </p>
+              <div className="flex justify-between pt-1 font-display text-base font-bold text-ink">
+                <span>Total</span>
+                <span>{formatKes(total)}</span>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="border-t border-ink/10 px-4 py-4">
-          <div className="mb-1 flex justify-between text-sm text-ink/70">
-            <span>Subtotal ({itemCount} items)</span>
-            <span>{formatKes(subtotal)}</span>
-          </div>
-          <div className="mb-2 flex justify-between text-sm text-ink/70">
-            <span>Shipping (flat)</span>
-            <span>{itemCount ? formatKes(shipping) : formatKes(0)}</span>
-          </div>
-          <p className="mb-2 text-[11px] text-ink/45">
-            Flat rate KES {storeConfig.shippingFlatKes} countrywide
-          </p>
-          <div className="mb-4 flex justify-between font-display text-base font-bold text-ink">
-            <span>Total</span>
-            <span>{formatKes(total)}</span>
-          </div>
           <div className="flex flex-col gap-2">
-            <Link
-              href="/cart"
-              onClick={closeDrawer}
-              className={`rounded-md border border-ink/15 py-3 text-center text-sm font-semibold text-ink hover:bg-ink/[0.03] ${
-                lines.length === 0 ? "pointer-events-none opacity-40" : ""
-              }`}
-            >
-              View cart
-            </Link>
             <Link
               href="/checkout"
               onClick={closeDrawer}
@@ -141,14 +140,14 @@ export function CartDrawer() {
                 lines.length === 0 ? "pointer-events-none opacity-40" : ""
               }`}
             >
-              Checkout
+              Proceed to Order
             </Link>
             <button
               type="button"
               onClick={closeDrawer}
-              className="rounded-md py-2 text-sm font-medium text-ink/70 hover:text-ink"
+              className="rounded-md border border-ink/15 py-3 text-sm font-semibold text-ink hover:bg-ink/[0.03]"
             >
-              Continue Shopping
+              Continue Browsing
             </button>
           </div>
         </div>

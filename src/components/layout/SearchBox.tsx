@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCategories } from "@/context/CategoriesContext";
 import { useProducts } from "@/context/ProductsContext";
-import { categories } from "@/lib/categories";
 import { formatKes } from "@/lib/format";
 
 export function SearchBox({ className = "" }: { className?: string }) {
+  const categories = useCategories();
   const { search } = useProducts();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -18,7 +19,7 @@ export function SearchBox({ className = "" }: { className?: string }) {
     const lower = q.trim().toLowerCase();
     if (lower.length < 2) return [];
     return categories.filter((c) => c.name.toLowerCase().includes(lower)).slice(0, 3);
-  }, [q]);
+  }, [q, categories]);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {

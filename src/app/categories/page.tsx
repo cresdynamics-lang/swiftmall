@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { categories } from "@/lib/categories";
+import { listStoreCategories } from "@/lib/categories-db";
 
 export const metadata = { title: "Categories" };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const categories = await listStoreCategories();
+
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
       <h1 className="font-display text-2xl font-bold text-ink">Shop by department</h1>

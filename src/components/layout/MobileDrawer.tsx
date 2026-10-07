@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useCategories } from "@/context/CategoriesContext";
 import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
-import { categories } from "@/lib/categories";
 import { formatKes } from "@/lib/format";
 
 type MobileDrawerProps = {
@@ -14,6 +14,7 @@ type MobileDrawerProps = {
 };
 
 export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
+  const categories = useCategories();
   const { products } = useProducts();
   const [expanded, setExpanded] = useState<string | null>(null);
 

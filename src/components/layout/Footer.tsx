@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import { categories } from "@/lib/categories";
+import { useCategories } from "@/context/CategoriesContext";
 import { storeConfig, telHref, whatsappHref } from "@/lib/store-config";
 import { Logo } from "./Logo";
 
 export function Footer() {
+  const categories = useCategories();
   return (
     <footer className="mt-auto border-t border-ink/10 bg-ink text-white">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -20,7 +23,9 @@ export function Footer() {
             Shop
           </h3>
           <ul className="mt-3 space-y-2 text-sm text-white/75">
-            {categories.map((c) => (
+            {categories
+              .filter((c) => c.slug !== "others")
+              .map((c) => (
               <li key={c.slug}>
                 <Link href={`/category/${c.slug}`} className="hover:text-white">
                   {c.name}
@@ -85,10 +90,10 @@ export function Footer() {
               </a>
             </li>
             <li className="pt-2 text-xs text-white/45">
-              Carriers: {storeConfig.carriers.join(" · ")}
+              Cash on delivery · Pay now · Pay a deposit
             </li>
             <li className="text-xs text-white/45">
-              Pay on order · Paybill {storeConfig.payments.paybill} · A/C{" "}
+              M-Pesa Paybill {storeConfig.payments.paybill} · A/C{" "}
               {storeConfig.payments.bankAccount}
             </li>
           </ul>

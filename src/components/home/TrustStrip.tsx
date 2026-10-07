@@ -9,7 +9,7 @@ const blocks = [
   },
   {
     title: "Delivery",
-    hint: `By ${storeConfig.carriers.slice(0, 2).join(", ")}...`,
+    hint: `Flat KES ${storeConfig.shippingFlatKes} countrywide`,
     href: "/help/delivery",
   },
   {

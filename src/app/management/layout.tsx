@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { storeConfig } from "@/lib/store-config";
 
 export const metadata: Metadata = {
@@ -6,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-[#f3f3f3] text-ink">
-      {children}
-    </div>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

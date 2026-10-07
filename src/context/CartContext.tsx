@@ -10,9 +10,8 @@ import {
   type ReactNode,
 } from "react";
 import { useProducts } from "@/context/ProductsContext";
-import { storeConfig } from "@/lib/store-config";
 
-export type CartLine = { productId: string; qty: number };
+export type CartLine = { productId: string; qty: number; size?: string };
 
 type CartContextValue = {
   lines: CartLine[];
@@ -23,17 +22,27 @@ type CartContextValue = {
   drawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
-  add: (productId: string, qty?: number) => void;
-  setQty: (productId: string, qty: number) => void;
-  remove: (productId: string) => void;
+  add: (productId: string, qty?: number, size?: string) => void;
+  setQty: (productId: string, qty: number, size?: string) => void;
+  remove: (productId: string, size?: string) => void;
   clear: () => void;
-  qtyFor: (productId: string) => number;
+  qtyFor: (productId: string, size?: string) => number;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = "swiftmall-cart";
+const STORAGE_KEY = "swiftmall-cart-v2";
 
-export function CartProvider({ children }: { children: ReactNode }) {
+function sameLine(a: CartLine, productId: string, size?: string) {
+  return a.productId === productId && (a.size ?? "") === (size ?? "");
+}
+
+export function CartProvider({
+  children,
+  shippingFlatKes,
+}: {
+  children: ReactNode;
+  shippingFlatKes: number;
+}) {
   const { byId } = useProducts();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -41,7 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem("swiftmall-cart");
       if (raw) setLines(JSON.parse(raw) as CartLine[]);
     } catch {
       /* ignore */
@@ -54,34 +63,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
   }, [lines, hydrated]);
 
-  const add = useCallback((productId: string, qty = 1) => {
+  const add = useCallback((productId: string, qty = 1, size?: string) => {
     setLines((prev) => {
-      const existing = prev.find((l) => l.productId === productId);
+      const existing = prev.find((l) => sameLine(l, productId, size));
       if (existing) {
         return prev.map((l) =>
-          l.productId === productId ? { ...l, qty: l.qty + qty } : l,
+          sameLine(l, productId, size) ? { ...l, qty: l.qty + qty } : l,
         );
       }
-      return [...prev, { productId, qty }];
+      return [...prev, { productId, qty, size: size || undefined }];
     });
-    setDrawerOpen(true);
   }, []);
 
-  const setQty = useCallback((productId: string, qty: number) => {
+  const setQty = useCallback((productId: string, qty: number, size?: string) => {
     setLines((prev) => {
-      if (qty <= 0) return prev.filter((l) => l.productId !== productId);
-      return prev.map((l) => (l.productId === productId ? { ...l, qty } : l));
+      if (qty <= 0) return prev.filter((l) => !sameLine(l, productId, size));
+      return prev.map((l) => (sameLine(l, productId, size) ? { ...l, qty } : l));
     });
   }, []);
 
-  const remove = useCallback((productId: string) => {
-    setLines((prev) => prev.filter((l) => l.productId !== productId));
+  const remove = useCallback((productId: string, size?: string) => {
+    setLines((prev) => prev.filter((l) => !sameLine(l, productId, size)));
   }, []);
 
   const clear = useCallback(() => setLines([]), []);
 
   const qtyFor = useCallback(
-    (productId: string) => lines.find((l) => l.productId === productId)?.qty ?? 0,
+    (productId: string, size?: string) =>
+      lines.find((l) => sameLine(l, productId, size))?.qty ?? 0,
     [lines],
   );
 
@@ -99,7 +108,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [lines, byId],
   );
 
-  const shipping = itemCount > 0 ? storeConfig.shippingFlatKes : 0;
+  const shipping = itemCount > 0 ? shippingFlatKes : 0;
   const total = subtotal + shipping;
 
   const value = useMemo(

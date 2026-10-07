@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
-import { categories } from "@/lib/categories";
+import { useCategories } from "@/context/CategoriesContext";
 
 export function DepartmentTiles() {
+  const categories = useCategories().filter((c) => c.slug !== "others");
+
   return (
     <section className="mx-auto max-w-7xl px-3 py-4 sm:px-4">
       <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-ink/55">
         Shop by department
       </h2>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {categories.map((c) => (
           <Link
             key={c.slug}

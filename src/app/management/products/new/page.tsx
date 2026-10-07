@@ -1,5 +1,5 @@
-import { requireAdmin } from "@/app/admin/actions";
-import { AdminNav } from "@/components/admin/AdminNav";
+import Link from "next/link";
+import { requireAdmin } from "@/app/management/actions";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { prisma } from "@/lib/db";
 
@@ -11,11 +11,13 @@ export default async function NewProductPage() {
   });
 
   return (
-    <>
-      <AdminNav />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="px-4 py-6 sm:px-6 lg:px-8">
+      <Link href="/management/products" className="text-sm text-ink/55 hover:text-ink">
+        ← Products
+      </Link>
+      <div className="mt-4">
         <ProductForm categories={categories} />
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

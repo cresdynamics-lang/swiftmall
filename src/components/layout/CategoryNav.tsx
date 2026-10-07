@@ -3,12 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useCategories } from "@/context/CategoriesContext";
 import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
-import { categories, type Category } from "@/lib/categories";
+import type { Category } from "@/lib/categories";
 import { discountPercent, formatKes } from "@/lib/format";
 
 export function CategoryNav() {
+  const categories = useCategories();
   const [openSlug, setOpenSlug] = useState<string | null>(null);
 
   return (
@@ -20,7 +22,9 @@ export function CategoryNav() {
         >
           All categories
         </Link>
-        {categories.map((cat) => (
+        {categories
+          .filter((cat) => cat.slug !== "others")
+          .map((cat) => (
           <CategoryHoverItem
             key={cat.slug}
             category={cat}

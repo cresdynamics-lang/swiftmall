@@ -1,6 +1,16 @@
-import { PrismaClient, OfferTag, Gender } from "@prisma/client";
+import {
+  PrismaClient,
+  OfferTag,
+  Gender,
+  OrderStatus,
+  PaymentMethod,
+  PaymentState,
+} from "@prisma/client";
+import { SHOE_EU_SIZES, TEDDY_CM_SIZES } from "../src/lib/product-sizes";
 
 const prisma = new PrismaClient();
+const SHOE_SIZES = [...SHOE_EU_SIZES];
+const TEDDY_SIZES = [...TEDDY_CM_SIZES];
 
 const categories = [
   {
@@ -20,7 +30,7 @@ const categories = [
   {
     slug: "electronics",
     name: "Electronics",
-    shortName: "Electr",
+    shortName: "Electronics",
     blurb: "Screens, sound and car gear.",
     sortOrder: 3,
   },
@@ -69,6 +79,7 @@ type SeedProduct = {
   featured?: boolean;
   offerTag?: OfferTag;
   gender?: Gender;
+  sizes?: string[];
 };
 
 const products: SeedProduct[] = [
@@ -251,6 +262,7 @@ const products: SeedProduct[] = [
     images: ["/products/p14.jpg"],
     description: "Soft giant pink teddy with Love heart patch - ideal gift.",
     featured: true,
+    sizes: TEDDY_SIZES,
   },
   {
     slug: "gold-pendant-necklace-black-stone",
@@ -288,6 +300,7 @@ const products: SeedProduct[] = [
     description: "Polished brown leather monk-strap brogues with brass buckle.",
     featured: true,
     offerTag: OfferTag.THIS_WEEK,
+    sizes: SHOE_SIZES,
   },
   {
     slug: "mens-leather-oxford-shoes-brown",
@@ -299,6 +312,7 @@ const products: SeedProduct[] = [
     stock: 10,
     images: ["/products/p09.jpg"],
     description: "Classic brown leather Oxford shoes for work and occasions.",
+    sizes: SHOE_SIZES,
   },
   {
     slug: "womens-comfort-toe-loop-sandals",
@@ -311,6 +325,7 @@ const products: SeedProduct[] = [
     images: ["/products/p08.jpg"],
     description: "Black platform toe-loop sandals for everyday comfort.",
     featured: true,
+    sizes: SHOE_SIZES,
   },
   {
     slug: "womens-clear-block-heel-sandals",
@@ -325,6 +340,7 @@ const products: SeedProduct[] = [
     description: "Transparent cross-strap sandals with clear block heel.",
     featured: true,
     offerTag: OfferTag.TODAY,
+    sizes: SHOE_SIZES,
   },
   {
     slug: "womens-fluffy-cross-strap-slippers",
@@ -337,6 +353,7 @@ const products: SeedProduct[] = [
     images: ["/products/p11.jpg"],
     description: "Soft fluffy cross-strap slippers for home and travel.",
     offerTag: OfferTag.NEW,
+    sizes: SHOE_SIZES,
   },
   {
     slug: "womens-long-wallet-pom-pom",
@@ -399,6 +416,7 @@ async function main() {
         featured: p.featured ?? false,
         offerTag: p.offerTag ?? OfferTag.NONE,
         gender: p.gender ?? null,
+        sizes: p.sizes ?? [],
         categoryId,
         sortOrder: i,
         live: true,
@@ -417,6 +435,7 @@ async function main() {
         featured: p.featured ?? false,
         offerTag: p.offerTag ?? OfferTag.NONE,
         gender: p.gender ?? null,
+        sizes: p.sizes ?? [],
         categoryId,
         sortOrder: i,
         live: true,
@@ -424,7 +443,234 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${categories.length} categories and ${products.length} products for Swiftmall.`);
+  await prisma.storeSettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      shippingFlatKes: 250,
+      depositShare: 0.5,
+      payOnOrder: true,
+      depositEnabled: true,
+      cashOnDelivery: true,
+      payOnDelivery: true,
+      carriers: ["Guardian Angel Coach", "Easy Coach", "Ena Coach"],
+      paybill: "880100",
+      bankAccount: "9211670018",
+      whatsappNumber: "0727383847",
+      phoneNumber: "0727383847",
+      contactEmail: "orders@swiftmall.co.ke",
+    },
+  });
+
+  await prisma.orderCounter.upsert({
+    where: { id: "default" },
+    update: {},
+    create: { id: "default", next: 1048 },
+  });
+
+  const allProducts = await prisma.product.findMany();
+  const pBySlug = Object.fromEntries(allProducts.map((p) => [p.slug, p]));
+  const health = cats.find((c) => c.slug === "health-and-beauty");
+
+  await prisma.homepageBanner.deleteMany();
+  await prisma.homepageBanner.createMany({
+    data: [
+      {
+        headline: "Glow up.",
+        subheadline: "Pay on delivery.",
+        copy: "Skincare, hair care and wellness, delivered countrywide for a flat KES 250.",
+        ctaLabel: "Shop Health & Beauty →",
+        categoryId: health?.id ?? null,
+        tile1ProductId: pBySlug["3-in-1-breakfast-maker"]?.id ?? null,
+        tile2ProductId: pBySlug["skyworth-65-qled-google-tv"]?.id ?? null,
+        active: true,
+        sortOrder: 0,
+      },
+      {
+        headline: "Cook. Brew.",
+        subheadline: "Serve.",
+        copy: "Appliances that earn their spot on the counter. Flat KES 250 shipping.",
+        ctaLabel: "Shop Kitchen & Home →",
+        categoryId: cats.find((c) => c.slug === "kitchen-and-home")?.id ?? null,
+        tile1ProductId: pBySlug["ceramic-cup-saucer-set-6"]?.id ?? null,
+        tile2ProductId: pBySlug["3-in-1-breakfast-maker"]?.id ?? null,
+        active: true,
+        sortOrder: 1,
+      },
+    ],
+  });
+
+  const existingOrders = await prisma.order.count();
+  if (existingOrders === 0) {
+    const sampleCustomers = [
+      { name: "Jane W.", phone: "0712345678", email: "jane@example.com", county: "Nairobi" },
+      { name: "Peter O.", phone: "0723456789", email: "peter@example.com", county: "Kisumu" },
+      { name: "Amina H.", phone: "0734567890", email: "amina@example.com", county: "Mombasa" },
+      { name: "Brian K.", phone: "0745678901", email: "brian@example.com", county: "Nakuru" },
+      { name: "Grace M.", phone: "0756789012", email: "grace@example.com", county: "Nairobi" },
+      { name: "Daniel T.", phone: "0767890123", email: "daniel@example.com", county: "Eldoret" },
+    ];
+
+    for (const c of sampleCustomers) {
+      await prisma.customer.upsert({
+        where: { email: c.email },
+        update: c,
+        create: c,
+      });
+    }
+
+    const jane = await prisma.customer.findUniqueOrThrow({ where: { email: "jane@example.com" } });
+    const watch = pBySlug["womens-watch-and-bracelet-set"];
+    const earbuds = pBySlug["true-wireless-bluetooth-earbuds"];
+    const serum = pBySlug["licorice-root-facial-serum-30ml"];
+    const shoes = pBySlug["mens-leather-monk-strap-shoes"];
+    const lip = pBySlug["strawberry-moisturising-lip-balm"];
+    const mask = pBySlug["black-mask-peel-off-cleansing-120g"];
+    const phone = pBySlug["samsung-galaxy-a06-smartphone"];
+    const oil = pBySlug["ginger-hair-growth-essential-oil-30ml"];
+    const maker = pBySlug["3-in-1-breakfast-maker"];
+
+    const samples: Array<{
+      number: number;
+      email: string;
+      town: string;
+      address: string;
+      carrier: string | null;
+      paymentMethod: PaymentMethod;
+      paymentState: PaymentState;
+      status: OrderStatus;
+      depositPaid: number;
+      items: { product: (typeof allProducts)[0] | undefined; qty: number }[];
+    }> = [
+      {
+        number: 1042,
+        email: "jane@example.com",
+        town: "Kasarani",
+        address: "Near stage",
+        carrier: "to confirm",
+        paymentMethod: PaymentMethod.PAY_ON_ORDER,
+        paymentState: PaymentState.PAID,
+        status: OrderStatus.NEW,
+        depositPaid: 7700,
+        items: [
+          { product: watch, qty: 1 },
+          { product: earbuds, qty: 2 },
+          { product: serum, qty: 1 },
+        ],
+      },
+      {
+        number: 1041,
+        email: "peter@example.com",
+        town: "Milimani",
+        address: "Estate gate",
+        carrier: "Easy Coach",
+        paymentMethod: PaymentMethod.DEPOSIT,
+        paymentState: PaymentState.PART_PAID,
+        status: OrderStatus.NEW,
+        depositPaid: 2400,
+        items: [{ product: shoes, qty: 1 }],
+      },
+      {
+        number: 1040,
+        email: "amina@example.com",
+        town: "Nyali",
+        address: "Apartment block",
+        carrier: "Guardian Angel Coach",
+        paymentMethod: PaymentMethod.CASH_ON_DELIVERY,
+        paymentState: PaymentState.TO_COLLECT,
+        status: OrderStatus.PACKED,
+        depositPaid: 0,
+        items: [
+          { product: lip, qty: 2 },
+          { product: mask, qty: 1 },
+        ],
+      },
+      {
+        number: 1039,
+        email: "brian@example.com",
+        town: "Section 58",
+        address: "Office pick-up",
+        carrier: "Ena Coach",
+        paymentMethod: PaymentMethod.PAY_ON_ORDER,
+        paymentState: PaymentState.PAID,
+        status: OrderStatus.DISPATCHED,
+        depositPaid: 12750,
+        items: [{ product: phone, qty: 1 }],
+      },
+      {
+        number: 1038,
+        email: "grace@example.com",
+        town: "Westlands",
+        address: "Building lobby",
+        carrier: "Local rider",
+        paymentMethod: PaymentMethod.PAY_ON_DELIVERY,
+        paymentState: PaymentState.TO_COLLECT,
+        status: OrderStatus.DELIVERED,
+        depositPaid: 0,
+        items: [
+          { product: oil, qty: 1 },
+          { product: lip, qty: 1 },
+        ],
+      },
+      {
+        number: 1037,
+        email: "daniel@example.com",
+        town: "Town",
+        address: "Bus terminus",
+        carrier: "Easy Coach",
+        paymentMethod: PaymentMethod.PAY_ON_ORDER,
+        paymentState: PaymentState.PAID,
+        status: OrderStatus.DELIVERED,
+        depositPaid: 6750,
+        items: [{ product: maker, qty: 1 }],
+      },
+    ];
+
+    for (const s of samples) {
+      const cust = await prisma.customer.findUniqueOrThrow({ where: { email: s.email } });
+      const lines = s.items.filter((i) => i.product);
+      const subtotal = lines.reduce((sum, i) => sum + (i.product!.price * i.qty), 0);
+      const shipping = 250;
+      const total = subtotal + shipping;
+      await prisma.order.create({
+        data: {
+          number: s.number,
+          customerId: cust.id,
+          customerName: cust.name,
+          phone: cust.phone,
+          email: cust.email,
+          county: cust.county ?? "Nairobi",
+          town: s.town,
+          address: s.address,
+          carrier: s.carrier,
+          paymentMethod: s.paymentMethod,
+          paymentState: s.paymentState,
+          status: s.status,
+          subtotal,
+          shipping,
+          total,
+          depositPaid: s.depositPaid || (s.paymentState === PaymentState.PAID ? total : 0),
+          items: {
+            create: lines.map((i) => ({
+              productId: i.product!.id,
+              name: i.product!.name,
+              image: i.product!.images[0] ?? "/products/p01.jpg",
+              unitPrice: i.product!.price,
+              qty: i.qty,
+            })),
+          },
+        },
+      });
+    }
+
+    // keep jane referenced for lint/type unused check
+    void jane;
+  }
+
+  console.log(
+    `Seeded ${categories.length} categories, ${products.length} products, settings, banners and sample orders.`,
+  );
 }
 
 main()

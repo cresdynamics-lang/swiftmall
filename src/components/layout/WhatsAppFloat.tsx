@@ -5,7 +5,7 @@ import { storeConfig, whatsappHref } from "@/lib/store-config";
 
 export function WhatsAppFloat({ productLabel }: { productLabel?: string }) {
   const pathname = usePathname();
-  if (pathname.startsWith("/checkout") || pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/checkout") || pathname.startsWith("/management")) return null;
 
   const text = productLabel
     ? `Hi Swiftmall, I'm asking about: ${productLabel}`

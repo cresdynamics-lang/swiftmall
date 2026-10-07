@@ -2,64 +2,52 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { useProducts } from "@/context/ProductsContext";
+import { useEffect, useState } from "react";
 import { formatKes, offerTagLabel } from "@/lib/format";
 
-const slides = [
-  {
-    department: "Health & Beauty",
-    href: "/category/health-and-beauty",
-    headline: "Glow up.",
-    sub: "Pay on delivery.",
-    copy: "Skincare, hair care and wellness, delivered countrywide for a flat KES 250.",
-    cta: "Shop Health & Beauty →",
-    tile1: "3-in-1-breakfast-maker",
-    tile2: "skyworth-65-qled-google-tv",
-  },
-  {
-    department: "Kitchen & Home",
-    href: "/category/kitchen-and-home",
-    headline: "Cook. Brew.",
-    sub: "Serve.",
-    copy: "Appliances that earn their spot on the counter. Flat KES 250 shipping.",
-    cta: "Shop Kitchen & Home →",
-    tile1: "ceramic-cup-saucer-set-6",
-    tile2: "3-in-1-breakfast-maker",
-  },
-  {
-    department: "Electronics",
-    href: "/category/electronics",
-    headline: "Screens & sound.",
-    sub: "Delivered.",
-    copy: "TVs, speakers and car kits. Browse, add to cart, pay your way.",
-    cta: "Shop Electronics →",
-    tile1: "ecomax-2-1-multimedia-bluetooth-speakers",
-    tile2: "car-jump-starter-air-compressor-kit",
-  },
-];
+export type HeroSlide = {
+  id: string;
+  department: string;
+  href: string;
+  headline: string;
+  sub: string;
+  copy: string;
+  cta: string;
+  tiles: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    price: number;
+    oldPrice?: number | null;
+    image: string;
+    offerTag: "NONE" | "TODAY" | "THIS_WEEK" | "NEW";
+  }>;
+};
 
-export function HeroBanner() {
-  const { bySlug } = useProducts();
+export function HeroBanner({ slides }: { slides: HeroSlide[] }) {
   const [index, setIndex] = useState(0);
+  const safeSlides = slides.length
+    ? slides
+    : [
+        {
+          id: "fallback",
+          department: "Swiftmall",
+          href: "/deals",
+          headline: "Shop it.",
+          sub: "Pay it. Get it.",
+          copy: "Countrywide delivery for a flat shipping fee.",
+          cta: "Browse deals →",
+          tiles: [],
+        },
+      ];
 
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), 5000);
+    if (safeSlides.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % safeSlides.length), 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [safeSlides.length]);
 
-  const slide = slides[index];
-  const t1 = bySlug(slide.tile1);
-  const t2 = bySlug(slide.tile2);
-
-  const tiles = useMemo(
-    () =>
-      [
-        { product: t1, fallback: "Featured" },
-        { product: t2, fallback: "On offer" },
-      ].filter((t) => t.product),
-    [t1, t2],
-  );
+  const slide = safeSlides[index] ?? safeSlides[0];
 
   return (
     <section className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
@@ -82,25 +70,31 @@ export function HeroBanner() {
             {slide.cta}
           </Link>
         </div>
-        <div className="absolute bottom-4 right-4 flex gap-1.5">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Slide ${i + 1}`}
-              onClick={() => setIndex(i)}
-              className={`h-1.5 rounded-full transition ${
-                i === index ? "w-6 bg-brand" : "w-1.5 bg-white/35"
-              }`}
-            />
-          ))}
-        </div>
+        {safeSlides.length > 1 ? (
+          <div className="absolute bottom-4 right-4 flex gap-1.5">
+            {safeSlides.map((_, i) => (
+              <button
+                key={safeSlides[i].id}
+                type="button"
+                aria-label={`Slide ${i + 1}`}
+                onClick={() => setIndex(i)}
+                className={`h-1.5 rounded-full transition ${
+                  i === index ? "w-6 bg-brand" : "w-1.5 bg-white/35"
+                }`}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-2">
-        {tiles.map(({ product, fallback }) => {
-          if (!product) return null;
-          const tag = offerTagLabel(product) ?? fallback;
+        {slide.tiles.map((product) => {
+          const tag =
+            offerTagLabel({
+              price: product.price,
+              oldPrice: product.oldPrice ?? undefined,
+              offerTag: product.offerTag,
+            }) ?? "Featured";
           return (
             <Link
               key={product.id}
@@ -108,7 +102,7 @@ export function HeroBanner() {
               className="flex min-h-[140px] items-stretch gap-3 overflow-hidden rounded-xl bg-white ring-1 ring-ink/8 transition hover:shadow-md"
             >
               <div className="relative w-[42%] shrink-0 sm:w-36 lg:w-[45%]">
-                <Image src={product.images[0]} alt="" fill className="object-cover" sizes="180px" />
+                <Image src={product.image} alt="" fill className="object-cover" sizes="180px" />
               </div>
               <div className="flex flex-1 flex-col justify-center py-3 pr-3">
                 <span className="w-fit rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold uppercase text-ink">

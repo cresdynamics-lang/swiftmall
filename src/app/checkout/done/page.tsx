@@ -1,8 +1,25 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
+import { CreatePasswordForm } from "@/app/checkout/done/CreatePasswordForm";
+import { getStoreSettings } from "@/lib/settings";
 import { storeConfig } from "@/lib/store-config";
+import { prisma } from "@/lib/db";
 
-export default function CheckoutDonePage() {
+type PageProps = {
+  searchParams: Promise<{ order?: string; email?: string }>;
+};
+
+export default async function CheckoutDonePage({ searchParams }: PageProps) {
+  const { order, email: emailParam } = await searchParams;
+  const settings = await getStoreSettings();
+  const orderNumber = order ? Number(order) : NaN;
+  const email = (emailParam ?? "").trim().toLowerCase();
+
+  const existing = email
+    ? await prisma.customer.findUnique({ where: { email } })
+    : null;
+  const hasPassword = Boolean(existing?.passwordHash);
+
   return (
     <div className="min-h-screen bg-page">
       <header className="border-b border-ink/10 bg-ink">
@@ -10,31 +27,42 @@ export default function CheckoutDonePage() {
           <Logo />
         </div>
       </header>
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+      <div className="mx-auto max-w-lg px-4 py-12 text-center">
         <p className="text-sm font-medium text-ink/50">
-          1 Cart › 2 Checkout › <span className="text-ink">3 Done</span>
+          Checkout › <span className="text-ink">Done</span>
         </p>
-        <h1 className="mt-4 font-display text-3xl font-bold text-ink">Order placed</h1>
+        <h1 className="mt-4 font-display text-3xl font-bold text-ink">
+          Order submitted successfully
+        </h1>
+        {order ? (
+          <p className="mt-2 font-display text-xl font-bold text-brand">#{order}</p>
+        ) : null}
         <p className="mt-3 text-sm text-ink/65">
-          We will confirm by email / WhatsApp ({storeConfig.whatsappNumber}). For Pay on
-          order, pay via M-Pesa Paybill <strong>{storeConfig.payments.paybill}</strong>{" "}
-          (account <strong>{storeConfig.payments.bankAccount}</strong>) and share the
-          confirmation.
+          We have your details and will confirm by email / WhatsApp (
+          {settings.whatsappNumber}). For Pay now or deposit, use M-Pesa Paybill{" "}
+          <strong>{settings.paybill}</strong> (account <strong>{settings.bankAccount}</strong>).
         </p>
-        <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <Link
-            href="/track"
-            className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-ink hover:bg-brand-dark"
-          >
-            Track my order
-          </Link>
-          <Link
-            href="/"
-            className="rounded-md border border-ink/15 bg-white px-5 py-3 text-sm font-semibold text-ink"
-          >
-            Continue Shopping
-          </Link>
-        </div>
+
+        {email && Number.isFinite(orderNumber) && !hasPassword ? (
+          <CreatePasswordForm email={email} orderNumber={orderNumber} />
+        ) : (
+          <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Link
+              href="/account"
+              className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-ink hover:bg-brand-dark"
+            >
+              {hasPassword ? "Go to my account" : "Track my order"}
+            </Link>
+            <Link
+              href="/"
+              className="rounded-md border border-ink/15 bg-white px-5 py-3 text-sm font-semibold text-ink"
+            >
+              Continue Browsing
+            </Link>
+          </div>
+        )}
+
+        <p className="mt-6 text-xs text-ink/40">{storeConfig.domain}</p>
       </div>
     </div>
   );

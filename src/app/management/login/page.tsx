@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { adminLogin } from "@/app/admin/actions";
+import { adminLogin } from "@/app/management/actions";
 import { Logo } from "@/components/layout/Logo";
 import { storeConfig } from "@/lib/store-config";
 
@@ -22,9 +22,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
               name="email"
               required
               autoComplete="username"
-              defaultValue="martin@swiftmall.co.ke"
-              className="w-full rounded-md border-0 px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-brand"
-              placeholder="martin@swiftmall.co.ke"
+              className="w-full rounded-md border-0 bg-white px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-brand"
             />
           </label>
           <label className="block text-sm">
@@ -34,7 +32,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
               name="password"
               required
               autoComplete="current-password"
-              className="w-full rounded-md border-0 px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-brand"
+              className="w-full rounded-md border-0 bg-white px-3 py-2.5 text-ink outline-none placeholder:text-ink/40 focus:ring-2 focus:ring-brand"
               placeholder="Password"
             />
           </label>

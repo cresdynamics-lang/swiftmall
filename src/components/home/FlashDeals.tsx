@@ -21,8 +21,10 @@ function useCountdown(hoursFromNow = 2) {
 
 export function FlashDeals() {
   const { products } = useProducts();
-  const deals = products.filter((p) => p.flashDeal || p.offerTag !== "NONE").slice(0, 4);
+  const deals = products.filter((p) => p.flashDeal || p.offerTag !== "NONE").slice(0, 12);
   const clock = useCountdown(2);
+  const mid = Math.ceil(deals.length / 2);
+  const rows = [deals.slice(0, mid), deals.slice(mid)].filter((r) => r.length > 0);
 
   return (
     <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
@@ -33,13 +35,25 @@ export function FlashDeals() {
             Ends in <span className="font-semibold text-ink">{clock}</span>
           </p>
         </div>
-        <Link href="/deals" className="text-sm font-semibold text-ink hover:underline">
-          See all deals →
+        <Link href="/deals" className="shrink-0 text-sm font-semibold text-ink hover:underline">
+          Shop all →
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        {deals.map((p) => (
-          <ProductCard key={p.id} product={p} />
+      <div className="space-y-3">
+        {rows.map((row, i) => (
+          <div
+            key={`flash-row-${i}`}
+            className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:thin] snap-x snap-mandatory"
+          >
+            {row.map((p) => (
+              <div
+                key={p.id}
+                className="w-[46%] shrink-0 snap-start sm:w-[31%] md:w-[28%] lg:w-[23%]"
+              >
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
         ))}
       </div>
     </section>

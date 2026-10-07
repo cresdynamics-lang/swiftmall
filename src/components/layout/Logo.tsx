@@ -30,7 +30,7 @@ export function Logo({ variant = "full", className = "" }: LogoProps) {
         alt={`${storeConfig.name} - ${storeConfig.tagline}`}
         width={200}
         height={48}
-        className="h-10 w-auto object-contain sm:h-11"
+        className="h-9 w-auto object-contain sm:h-11"
         priority
       />
     </Link>

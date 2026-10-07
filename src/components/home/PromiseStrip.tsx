@@ -2,7 +2,7 @@ import { storeConfig } from "@/lib/store-config";
 
 const items = [
   { title: "Cash on delivery", hint: "Pay when it arrives" },
-  { title: "Pay a deposit", hint: "Balance on delivery" },
+  { title: "Pay now", hint: "M-Pesa Paybill before dispatch" },
   { title: `KES ${storeConfig.shippingFlatKes} shipping`, hint: "Countrywide, any county" },
   { title: "WhatsApp / Call", hint: storeConfig.whatsappNumber },
 ];

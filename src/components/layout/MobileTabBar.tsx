@@ -13,7 +13,7 @@ const tabs = [
 export function MobileTabBar() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/checkout") || pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/checkout") || pathname.startsWith("/management")) return null;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
@@ -21,7 +21,7 @@ export function MobileTabBar() {
         {tabs.map((tab) => {
           const active =
             tab.href === "/"
-              ? pathname === "/"
+              ? pathname === "/" || pathname === "/home"
               : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           return (
             <li key={tab.href} className="flex-1">

@@ -32,8 +32,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 bg-ink text-white shadow-md">
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
-        <Logo className="hidden sm:inline-flex" />
-        <Logo variant="icon" className="sm:hidden" />
+        <Logo className="max-w-[160px] sm:max-w-none" />
 
         <AllCategoriesMenu />
         <SearchBox className="min-w-0" />

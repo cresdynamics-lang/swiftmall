@@ -11,17 +11,14 @@ export const storeConfig = {
   contactEmail: "orders@swiftmall.co.ke",
   adminTitle: "Swiftmall Admin",
   payments: {
-    defaultMethod: "pay_on_order" as const,
-    methods: [
-      "pay_on_order",
-      "deposit",
-      "cash_on_delivery",
-      "pay_on_delivery",
-    ] as const,
+    defaultMethod: "cash_on_delivery" as const,
+    /** Customer-facing checkout methods only */
+    methods: ["deposit", "pay_now", "cash_on_delivery"] as const,
     bankAccount: "9211670018",
     paybill: "880100",
   },
-  carriers: ["Guardian Angel Coach", "Easy Coach", "Ena Coach"],
+  /** Internal only — never shown to shoppers */
+  carriers: [] as string[],
   logo: {
     full: "/brand/logo-full.jpg",
     icon: "/brand/logo-icon.jpg",
@@ -49,20 +46,16 @@ export function telHref(): string {
 export type PaymentMethod = (typeof storeConfig.payments.methods)[number];
 
 export const paymentLabels: Record<PaymentMethod, { title: string; hint: string }> = {
-  pay_on_order: {
-    title: "Pay on order",
-    hint: "M-Pesa Paybill or bank transfer now. We dispatch after payment.",
-  },
   deposit: {
     title: "Pay a deposit",
-    hint: "Pay a share now, balance on delivery.",
+    hint: "Pay a share now via M-Pesa, balance on delivery.",
+  },
+  pay_now: {
+    title: "Pay now",
+    hint: "Pay the full amount via M-Pesa Paybill before we dispatch.",
   },
   cash_on_delivery: {
     title: "Cash on delivery",
-    hint: "Pay cash to the rider.",
-  },
-  pay_on_delivery: {
-    title: "Pay on delivery",
-    hint: "Pay by M-Pesa when it arrives.",
+    hint: "Pay cash to the rider when your order arrives.",
   },
 };

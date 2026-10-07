@@ -34,7 +34,7 @@ export const categories: Category[] = [
   {
     slug: "electronics",
     name: "Electronics",
-    shortName: "Electr",
+    shortName: "Electronics",
     blurb: "Screens, sound and car gear.",
   },
   {

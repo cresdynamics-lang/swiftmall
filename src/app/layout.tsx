@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { SiteShell } from "@/components/layout/SiteShell";
+import { listStoreCategories } from "@/lib/categories-db";
 import { listLiveProducts } from "@/lib/products";
+import { getStoreSettings } from "@/lib/settings";
 import { storeConfig } from "@/lib/store-config";
 import "./globals.css";
 
@@ -32,12 +34,16 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const products = await listLiveProducts();
+  const [products, settings, categories] = await Promise.all([
+    listLiveProducts(),
+    getStoreSettings(),
+    listStoreCategories(),
+  ]);
 
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <Providers products={products}>
+        <Providers products={products} settings={settings} categories={categories}>
           <SiteShell>{children}</SiteShell>
         </Providers>
       </body>
