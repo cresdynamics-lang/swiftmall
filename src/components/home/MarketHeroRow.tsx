@@ -61,17 +61,27 @@ export function MarketHeroRow({
   return (
     <>
       <div className={`w-full px-3 pt-3 sm:px-4 lg:px-6 ${DESKTOP_HERO_H}`}>
-        <div className="flex h-full min-h-0 w-full flex-col gap-3 md:flex-row md:gap-3 lg:gap-4">
-          {/* Carousel — cuts off where the flash panel begins */}
+        {/* One shell: uniform block with a hairline cut — no white gutter */}
+        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[14px] md:flex-row lg:rounded-2xl">
           <div className="min-h-[260px] min-w-0 flex-1 md:min-h-[380px] lg:min-h-0">
-            <CampaignHero slides={slides} />
+            <CampaignHero slides={slides} flush />
           </div>
 
-          {/* Static yellow flash end — timer + two cards, no slide animation */}
           {flashProducts.length > 0 ? (
-            <div className="w-full shrink-0 md:w-[min(42%,400px)] md:min-h-[380px] lg:w-[min(36%,420px)] lg:min-h-0">
-              <HeroFlashPanel products={flashProducts} flashEndsAt={flashEndsAt} />
-            </div>
+            <>
+              {/* Carved cut — edge to edge, razor-thin */}
+              <div
+                aria-hidden
+                className="h-px w-full shrink-0 bg-ink/20 md:h-auto md:w-px"
+              />
+              <div className="w-full shrink-0 md:w-[min(40%,380px)] md:min-h-[380px] lg:w-[min(34%,400px)] lg:min-h-0">
+                <HeroFlashPanel
+                  products={flashProducts}
+                  flashEndsAt={flashEndsAt}
+                  flush
+                />
+              </div>
+            </>
           ) : null}
         </div>
       </div>

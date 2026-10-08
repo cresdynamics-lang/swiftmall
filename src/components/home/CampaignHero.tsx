@@ -75,9 +75,12 @@ function prefersDataSaver() {
 export function CampaignHero({
   slides,
   onIndexChange,
+  flush = false,
 }: {
   slides: CampaignSlide[];
   onIndexChange?: (index: number) => void;
+  /** When true, no own radius — sits inside a shared split shell. */
+  flush?: boolean;
 }) {
   const safe = slides.filter((s) => s.products.length >= 1);
   const [index, setIndex] = useState(0);
@@ -174,7 +177,11 @@ export function CampaignHero({
         Mobile: content-driven height. Tablet: aspect canvas.
         Desktop: fill remaining viewport (parent sets height).
       */}
-      <div className="relative h-full min-h-[280px] overflow-hidden rounded-[14px] md:min-h-[380px] lg:min-h-0 lg:rounded-2xl">
+      <div
+        className={`relative h-full min-h-[280px] overflow-hidden md:min-h-[380px] lg:min-h-0 ${
+          flush ? "" : "rounded-[14px] lg:rounded-2xl"
+        }`}
+      >
         {/* Mobile height sizer */}
         <div
           aria-hidden
@@ -245,25 +252,6 @@ export function CampaignHero({
           );
         })}
       </div>
-
-      {/* Arrows — tablet/desktop only, inset so they don't cover copy */}
-      <button
-        type="button"
-        aria-label="Previous slide"
-        onClick={() => goTo(index - 1, true)}
-        className="absolute left-1.5 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-lg text-white hover:bg-brand hover:text-ink md:flex lg:left-2 lg:h-10 lg:w-10"
-      >
-        ‹
-      </button>
-      <button
-        type="button"
-        aria-label="Next slide"
-        onClick={() => goTo(index + 1, true)}
-        className="absolute right-1.5 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-lg text-white hover:bg-brand hover:text-ink md:flex lg:right-2 lg:h-10 lg:w-10"
-      >
-        ›
-      </button>
-
     </section>
   );
 }
