@@ -48,7 +48,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <MarketHeroRow slides={slides} />
+      <MarketHeroRow slides={slides} flashEndsAt={flashEndsAt} />
       <FlashDeals flashEndsAt={flashEndsAt} />
       <WhatsNewRow />
       {shopCategories.map((cat) => (

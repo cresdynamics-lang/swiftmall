@@ -114,15 +114,6 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
             </Link>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            {clock ? (
-              <div className="flex items-center gap-1 font-display text-sm font-bold">
-                <TimeBox value={clock.h} label="HRS" />
-                <span className="text-brand">:</span>
-                <TimeBox value={clock.m} label="MIN" />
-                <span className="text-brand">:</span>
-                <TimeBox value={clock.s} label="SEC" />
-              </div>
-            ) : null}
             <button
               type="button"
               aria-label="Scroll flash deals left"
@@ -161,15 +152,6 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function TimeBox({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex min-w-[44px] flex-col items-center rounded-md bg-brand px-2 py-1 text-ink">
-      <span className="text-base leading-none">{String(value).padStart(2, "0")}</span>
-      <span className="mt-0.5 text-[9px] font-semibold tracking-wide">{label}</span>
-    </div>
   );
 }
 

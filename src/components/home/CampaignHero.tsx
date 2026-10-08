@@ -9,6 +9,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { FlashCountdown } from "@/components/home/FlashCountdown";
 import { discountPercent, formatKes } from "@/lib/format";
 import {
   HERO_CROSSFADE_MS,
@@ -74,9 +75,11 @@ function prefersDataSaver() {
 
 export function CampaignHero({
   slides,
+  flashEndsAt = null,
   onIndexChange,
 }: {
   slides: CampaignSlide[];
+  flashEndsAt?: string | null;
   onIndexChange?: (index: number) => void;
 }) {
   const safe = slides.filter((s) => s.products.length >= 1);
@@ -248,7 +251,7 @@ export function CampaignHero({
                       showMotion && on ? "hero-tiles-in" : ""
                     }`}
                   >
-                    <HeroOfferCards products={offerProducts} />
+                    <HeroOfferCards products={offerProducts} flashEndsAt={flashEndsAt} />
                   </div>
                 ) : null}
               </div>
@@ -361,16 +364,27 @@ function SlideBackdrop({
 }
 
 /** Two stacked offer cards inside the carousel (and phone rail). */
-export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
+export function HeroOfferCards({
+  products,
+  flashEndsAt = null,
+  showTimer = true,
+}: {
+  products: CampaignProduct[];
+  flashEndsAt?: string | null;
+  /** When false, timer is rendered by the parent (e.g. shared phone rail header). */
+  showTimer?: boolean;
+}) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-3">
+    <div className="flex h-full min-h-0 w-full flex-col gap-2">
+      {showTimer ? <FlashCountdown endsAt={flashEndsAt} compact /> : null}
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
       {products.slice(0, 2).map((product) => {
         const pct = discountPercent(product.price, product.oldPrice);
         return (
           <Link
             key={product.id}
             href={`/product/${product.slug}`}
-            className="flex min-h-[120px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white/95 shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-xl lg:min-h-[140px]"
+            className="flex min-h-[100px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white/95 shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-xl lg:min-h-[120px]"
           >
             <div className="relative w-[40%] shrink-0 self-stretch bg-ink/[0.03] sm:w-[42%]">
               <Image
@@ -402,6 +416,7 @@ export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
           </Link>
         );
       })}
+      </div>
     </div>
   );
 }

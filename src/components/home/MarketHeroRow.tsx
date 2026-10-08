@@ -8,11 +8,18 @@ import {
   type CampaignSlide,
 } from "@/components/home/CampaignHero";
 import { DepartmentTiles } from "@/components/home/DepartmentTiles";
+import { FlashCountdown } from "@/components/home/FlashCountdown";
 
 /** Full viewport under top strip + navbar + large category strip */
 const DESKTOP_HERO_H = "lg:h-[calc(100dvh-9.5rem)]";
 
-export function MarketHeroRow({ slides }: { slides: CampaignSlide[] }) {
+export function MarketHeroRow({
+  slides,
+  flashEndsAt = null,
+}: {
+  slides: CampaignSlide[];
+  flashEndsAt?: string | null;
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -31,20 +38,27 @@ export function MarketHeroRow({ slides }: { slides: CampaignSlide[] }) {
     <>
       <div className={`w-full px-3 pt-3 sm:px-4 lg:px-6 ${DESKTOP_HERO_H}`}>
         <div className="h-full min-h-0 w-full">
-          <CampaignHero slides={slides} onIndexChange={setActiveIndex} />
+          <CampaignHero
+            slides={slides}
+            flashEndsAt={flashEndsAt}
+            onIndexChange={setActiveIndex}
+          />
         </div>
       </div>
 
       {/* Phone offers — tablet/desktop cards live inside the carousel */}
       <div className="mt-3 md:hidden">
+        <div className="mb-2 px-3">
+          <FlashCountdown endsAt={flashEndsAt} compact />
+        </div>
         <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-ink/45">
-          Offers
+          Flash offers
         </p>
         <div className="flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:thin] snap-x">
           {offers.map((p) => (
             <div key={p.id} className="w-[82%] shrink-0 snap-start">
               <div className="h-[128px]">
-                <HeroOfferCards products={[p]} />
+                <HeroOfferCards products={[p]} showTimer={false} />
               </div>
             </div>
           ))}
