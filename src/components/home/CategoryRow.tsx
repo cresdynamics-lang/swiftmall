@@ -5,27 +5,9 @@ import { useState } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
 import type { Category } from "@/lib/categories";
-import type { Product } from "@/lib/product-types";
 
-const ROW_COUNT = 2;
-const PER_ROW = 8;
-
-function ScrollRow({ products }: { products: Product[] }) {
-  if (products.length === 0) return null;
-
-  return (
-    <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 pt-0.5 [scrollbar-width:thin] snap-x snap-mandatory">
-      {products.map((p) => (
-        <div
-          key={p.id}
-          className="w-[46%] shrink-0 snap-start sm:w-[31%] md:w-[28%] lg:w-[23%]"
-        >
-          <ProductCard product={p} />
-        </div>
-      ))}
-    </div>
-  );
-}
+/** Two rows on every breakpoint: 2×2 / 3×2 / 4×2 */
+const MAX_ITEMS = 8;
 
 export function CategoryRow({ category }: { category: Category }) {
   const { byCategory } = useProducts();
@@ -33,10 +15,7 @@ export function CategoryRow({ category }: { category: Category }) {
   const [gender, setGender] = useState<"mens" | "womens" | undefined>(
     isFashion ? "mens" : undefined,
   );
-  const items = byCategory(category.slug, gender).slice(0, ROW_COUNT * PER_ROW);
-  const rows = Array.from({ length: ROW_COUNT }, (_, i) =>
-    items.slice(i * PER_ROW, (i + 1) * PER_ROW),
-  ).filter((row) => row.length > 0);
+  const items = byCategory(category.slug, gender).slice(0, MAX_ITEMS);
 
   return (
     <section className="mx-auto max-w-7xl px-3 py-5 sm:px-4">
@@ -74,12 +53,12 @@ export function CategoryRow({ category }: { category: Category }) {
         </div>
       )}
 
-      {rows.length === 0 ? (
+      {items.length === 0 ? (
         <p className="py-8 text-center text-sm text-ink/50">Products coming soon.</p>
       ) : (
-        <div className="space-y-3">
-          {rows.map((row, i) => (
-            <ScrollRow key={`${category.slug}-row-${i}`} products={row} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {items.map((p) => (
+            <ProductCard key={p.id} product={p} />
           ))}
         </div>
       )}

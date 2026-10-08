@@ -2,11 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductActions } from "@/components/product/ProductActions";
-import { ProductCard } from "@/components/product/ProductCard";
+import {
+  ProductRecentlyViewed,
+  ProductRail,
+  ProductWhatsAppOrder,
+  ShopOtherDepartments,
+} from "@/components/product/ProductExtras";
 import { TrackView } from "@/components/product/TrackView";
-import { getStoreCategory } from "@/lib/categories-db";
+import { listStoreCategories, getStoreCategory } from "@/lib/categories-db";
 import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
-import { getProduct, getProductsByCategory } from "@/lib/products";
+import { getProduct, getProductsByCategory, listLiveProducts } from "@/lib/products";
 import { paymentLabels, storeConfig } from "@/lib/store-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -22,11 +27,25 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const cat = await getStoreCategory(product.category);
+  const [cat, categories, allLive] = await Promise.all([
+    getStoreCategory(product.category),
+    listStoreCategories(),
+    listLiveProducts(),
+  ]);
+
   const discount = discountPercent(product.price, product.oldPrice);
   const promo = offerTagLabel(product);
-  const related = (await getProductsByCategory(product.category))
+  const save =
+    product.oldPrice && product.oldPrice > product.price
+      ? product.oldPrice - product.price
+      : null;
+
+  const othersLike = (await getProductsByCategory(product.category))
     .filter((p) => p.id !== product.id)
+    .slice(0, 4);
+
+  const mightLike = allLive
+    .filter((p) => p.id !== product.id && p.category !== product.category)
     .slice(0, 4);
 
   return (
@@ -73,27 +92,29 @@ export default async function ProductPage({ params }: PageProps) {
           <p className="mt-2 text-sm text-ink/55">
             Category: {cat?.name}
             {product.brand ? ` · ${product.brand}` : ""}
-            {product.sku ? ` · Code: ${product.sku}` : ""} ·{" "}
-            <span className="text-stock">
-              {product.stock > 0 ? `In stock (${product.stock})` : "Out of stock"}
-            </span>
+            {product.sku ? ` · Code: ${product.sku}` : ""}
           </p>
 
-          <div className="mt-4 flex flex-wrap items-baseline gap-3">
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            {product.oldPrice ? (
+              <span className="text-lg text-ink/35 line-through">
+                {formatKes(product.oldPrice)}
+              </span>
+            ) : null}
             <span className="font-display text-3xl font-bold text-ink">
               {formatKes(product.price)}
             </span>
-            {product.oldPrice ? (
-              <>
-                <span className="text-lg text-ink/35 line-through">
-                  {formatKes(product.oldPrice)}
-                </span>
-                <span className="text-sm font-semibold text-stock">
-                  Save {formatKes(product.oldPrice - product.price)}
-                  {discount != null ? ` (-${discount}%)` : ""}
-                </span>
-              </>
+          </div>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm">
+            {save != null ? (
+              <span className="font-semibold text-ink">
+                Save {formatKes(save)}
+                {discount != null ? ` (-${discount}%)` : ""}
+              </span>
             ) : null}
+            <span className={product.stock > 0 ? "text-stock" : "text-red-600"}>
+              {product.stock > 0 ? "In stock" : "Out of stock"}
+            </span>
           </div>
           <p className="mt-2 text-sm text-ink/55">
             Plus KES {storeConfig.shippingFlatKes} shipping at checkout · Cash on delivery available
@@ -103,6 +124,11 @@ export default async function ProductPage({ params }: PageProps) {
             productId={product.id}
             stock={product.stock}
             sizes={product.sizes}
+          />
+
+          <ProductWhatsAppOrder
+            productName={product.name}
+            priceLabel={formatKes(product.price)}
           />
 
           <div className="mt-6 grid gap-2 sm:grid-cols-3">
@@ -126,24 +152,17 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </div>
 
-      {related.length > 0 && (
-        <section className="mt-12">
-          <div className="mb-4 flex items-end justify-between">
-            <h2 className="font-display text-xl font-bold text-ink">You may also like</h2>
-            <Link
-              href={`/category/${product.category}`}
-              className="text-sm font-semibold text-ink hover:underline"
-            >
-              See all →
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </section>
-      )}
+      <ProductRail
+        title="What others like"
+        products={othersLike}
+        seeAllHref={`/category/${product.category}`}
+      />
+
+      <ProductRecentlyViewed excludeId={product.id} />
+
+      <ProductRail title="What you might like" products={mightLike} seeAllHref="/deals" />
+
+      <ShopOtherDepartments categories={categories} currentSlug={product.category} />
     </div>
   );
 }

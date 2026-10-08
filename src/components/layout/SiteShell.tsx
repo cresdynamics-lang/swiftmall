@@ -3,8 +3,9 @@
 import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { CategoryNav } from "./CategoryNav";
+import { BackToTop } from "./BackToTop";
 import { Footer } from "./Footer";
+import { MarketNavStrip } from "./MarketNavStrip";
 import { MobileDrawer } from "./MobileDrawer";
 import { MobileTabBar } from "./MobileTabBar";
 import { Navbar } from "./Navbar";
@@ -35,13 +36,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <>
       <TopStrip />
       <Navbar onOpenMenu={() => setMenuOpen(true)} />
-      <CategoryNav />
+      <MarketNavStrip />
       <MobileDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0">{children}</main>
       <Footer />
       <MobileTabBar />
-      {/* Prefer tawk.to when configured; WhatsApp float stays as fallback */}
       {process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID ? <TawkChat /> : <WhatsAppFloat />}
+      <BackToTop />
       <CartDrawer />
     </>
   );

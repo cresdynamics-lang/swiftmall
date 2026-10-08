@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSaved } from "@/context/SavedContext";
-import { AllCategoriesMenu } from "./AllCategoriesMenu";
+import { QUICK_SEARCH_LINKS } from "@/lib/hero-slides";
 import { Logo } from "./Logo";
 import { SearchBox } from "./SearchBox";
 
@@ -31,13 +31,21 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-50 bg-ink text-white shadow-md">
-      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
-        <Logo className="max-w-[160px] sm:max-w-none" />
+      <div className="relative mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-2.5">
+        <Logo className="max-w-[120px] shrink-0 sm:max-w-[160px] lg:max-w-none" />
 
-        <AllCategoriesMenu />
-        <SearchBox className="min-w-0" />
+        {/* Desktop / tablet search */}
+        <div className="hidden min-w-0 flex-1 flex-col gap-1 md:flex">
+          <SearchBox className="min-w-0 w-full" />
+          <div className="hidden flex-wrap gap-x-3 gap-y-0.5 px-0.5 text-[11px] text-white/55 lg:flex">
+            {QUICK_SEARCH_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="hover:text-brand">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-        {/* Desktop: Account / Saved / Cart */}
         <nav className="hidden items-center gap-1 md:flex">
           <Link
             href="/account"
@@ -75,8 +83,9 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           </button>
         </nav>
 
-        {/* Mobile: cart then hamburger on the right */}
-        <div className="flex shrink-0 items-center gap-0.5 md:hidden">
+        {/* Phone: search icon + cart + menu */}
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 md:hidden">
+          <SearchBox className="shrink-0" />
           <button
             type="button"
             onClick={openDrawer}
@@ -92,9 +101,9 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
           </button>
           <button
             type="button"
-            onClick={onOpenMenu}
+            onClick={() => onOpenMenu?.()}
             className="flex h-10 w-10 items-center justify-center rounded-md text-white/90 hover:bg-white/10"
-            aria-label="Open categories"
+            aria-label="Open menu"
           >
             <MenuIcon />
           </button>

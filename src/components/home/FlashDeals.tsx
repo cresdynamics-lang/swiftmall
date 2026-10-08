@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { useCart } from "@/context/CartContext";
@@ -71,7 +72,7 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
     return (
       <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
         <div className="rounded-[18px] bg-ink px-4 py-8 text-center text-white sm:px-6">
-          <h2 className="font-display text-xl font-bold">⚡ Flash deals</h2>
+          <h2 className="font-display text-xl font-bold">⚡ Flash Sale</h2>
           <p className="mt-2 text-sm text-white/60">New deals soon</p>
           <Link
             href="/deals"
@@ -97,11 +98,22 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
   return (
     <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
       <div className="rounded-[18px] bg-ink px-3 py-4 text-white sm:px-5 sm:py-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <h2 className="font-display text-xl font-bold sm:text-2xl">
-              ⚡ Flash deals
+              ⚡ Flash Sale
             </h2>
+            <span className="text-xs font-semibold text-white/55">
+              {endsLabel(flashEndsAt)}
+            </span>
+            <Link
+              href="/deals"
+              className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-ink hover:bg-brand-dark"
+            >
+              Shop all →
+            </Link>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
             {clock ? (
               <div className="flex items-center gap-1 font-display text-sm font-bold">
                 <TimeBox value={clock.h} label="HRS" />
@@ -111,17 +123,6 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
                 <TimeBox value={clock.s} label="SEC" />
               </div>
             ) : null}
-            <span className="text-xs font-semibold text-white/55">
-              {endsLabel(flashEndsAt)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/deals"
-              className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-ink hover:bg-brand-dark"
-            >
-              Shop all →
-            </Link>
             <button
               type="button"
               aria-label="Scroll flash deals left"
@@ -151,7 +152,7 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
               <div
                 key={p.id}
                 data-flash-card
-                className="w-[150px] shrink-0 snap-start sm:w-[180px] lg:w-[200px]"
+                className="w-[158px] shrink-0 snap-start sm:w-[180px] lg:w-[200px]"
               >
                 <ProductCard product={p} variant="flash" />
               </div>
@@ -174,11 +175,13 @@ function TimeBox({ value, label }: { value: number; label: string }) {
 
 function DealOfTheHour({ product }: { product: Product }) {
   const { add } = useCart();
+  const router = useRouter();
   const [added, setAdded] = useState(false);
   const pct = discountPercent(product.price, product.oldPrice);
   const save = saveAmount(product.price, product.oldPrice);
   const low = isLowStock(product.stock, 5);
   const needsSize = product.sizes.length > 0;
+  const inStock = product.stock > 0;
 
   useEffect(() => {
     if (!added) return;
@@ -213,28 +216,32 @@ function DealOfTheHour({ product }: { product: Product }) {
         >
           {product.name}
         </Link>
-        <p className="mt-2 font-display text-2xl font-bold">
-          {formatKes(product.price)}
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
           {product.oldPrice && pct != null ? (
-            <span className="ml-2 text-sm font-normal text-ink/40 line-through">
+            <span className="text-sm text-ink/40 line-through">
               {formatKes(product.oldPrice)}
             </span>
           ) : null}
-        </p>
-        {save != null ? (
-          <p className="mt-0.5 text-sm font-bold">Save {formatKes(save)}</p>
-        ) : null}
-        {product.stock > 0 ? (
-          low ? (
-            <p className="mt-2 text-xs font-semibold text-orange-600">
-              Only {product.stock} left
-            </p>
+          <span className="font-display text-2xl font-bold">
+            {formatKes(product.price)}
+          </span>
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm">
+          {save != null ? (
+            <span className="font-bold">Save {formatKes(save)}</span>
+          ) : null}
+          {inStock ? (
+            low ? (
+              <span className="font-semibold text-orange-600">
+                Only {product.stock} left
+              </span>
+            ) : (
+              <span className="text-stock">In stock</span>
+            )
           ) : (
-            <p className="mt-2 text-xs text-stock">In stock</p>
-          )
-        ) : (
-          <p className="mt-2 text-xs text-red-600">Out of stock</p>
-        )}
+            <span className="text-red-600">Out of stock</span>
+          )}
+        </div>
         {needsSize ? (
           <Link
             href={`/product/${product.slug}`}
@@ -250,17 +257,30 @@ function DealOfTheHour({ product }: { product: Product }) {
             ✓ Added · View cart
           </Link>
         ) : (
-          <button
-            type="button"
-            disabled={product.stock <= 0}
-            onClick={() => {
-              add(product.id);
-              setAdded(true);
-            }}
-            className="mt-4 w-full rounded-md bg-brand py-3 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-40"
-          >
-            Add to Cart
-          </button>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={!inStock}
+              onClick={() => {
+                add(product.id);
+                router.push("/checkout");
+              }}
+              className="rounded-md bg-ink py-2.5 text-sm font-semibold text-white hover:bg-ink/90 disabled:opacity-40"
+            >
+              Buy Now
+            </button>
+            <button
+              type="button"
+              disabled={!inStock}
+              onClick={() => {
+                add(product.id);
+                setAdded(true);
+              }}
+              className="rounded-md bg-brand py-2.5 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-40"
+            >
+              Add to Cart
+            </button>
+          </div>
         )}
       </div>
     </div>

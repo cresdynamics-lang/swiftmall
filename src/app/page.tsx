@@ -1,9 +1,10 @@
 import { CategoryRow } from "@/components/home/CategoryRow";
-import { DepartmentTiles } from "@/components/home/DepartmentTiles";
 import { FlashDeals } from "@/components/home/FlashDeals";
-import { HeroBanner, type HeroSlideView } from "@/components/home/HeroBanner";
+import { MarketHeroRow } from "@/components/home/MarketHeroRow";
+import type { CampaignSlide } from "@/components/home/CampaignHero";
 import { RecentlyViewed } from "@/components/home/RecentlyViewed";
 import { TrustStrip } from "@/components/home/TrustStrip";
+import { WhatsNewRow } from "@/components/home/WhatsNewRow";
 import { listStoreCategories } from "@/lib/categories-db";
 import { HERO_SLIDES } from "@/lib/hero-slides";
 import { listLiveProducts } from "@/lib/products";
@@ -18,8 +19,8 @@ export default async function HomePage() {
   const bySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
   const shopCategories = categories.filter((c) => c.slug !== "others");
 
-  const slides: HeroSlideView[] = HERO_SLIDES.map((def) => {
-    const offers = def.offerSlugs
+  const slides: CampaignSlide[] = HERO_SLIDES.map((def) => {
+    const slideProducts = def.productSlugs
       .map((slug) => bySlug[slug])
       .filter(Boolean)
       .map((p) => ({
@@ -31,14 +32,14 @@ export default async function HomePage() {
         image: p!.images[0] ?? "/products/p01.jpg",
       }));
 
-    if (offers.length < 2) {
-      console.warn(`[hero] Slide ${def.id} is missing offer products`, def.offerSlugs);
+    if (slideProducts.length < 2) {
+      console.warn(`[hero] Slide ${def.id} has fewer than 2 products`, def.productSlugs);
     }
-    if (!def.image) {
-      console.warn(`[hero] Slide ${def.id} is missing a photo`);
+    if (def.backgroundShape !== "none" && !def.background) {
+      console.warn(`[hero] Slide ${def.id} is missing a background photo`);
     }
 
-    return { ...def, offers };
+    return { ...def, products: slideProducts };
   });
 
   const flashEndsAt = settings.flashEndsAt
@@ -47,9 +48,9 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroBanner slides={slides} />
-      <DepartmentTiles />
+      <MarketHeroRow slides={slides} />
       <FlashDeals flashEndsAt={flashEndsAt} />
+      <WhatsNewRow />
       {shopCategories.map((cat) => (
         <CategoryRow key={cat.slug} category={cat} />
       ))}
