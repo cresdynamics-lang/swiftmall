@@ -9,7 +9,6 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { FlashCountdown } from "@/components/home/FlashCountdown";
 import { discountPercent, formatKes } from "@/lib/format";
 import {
   HERO_CROSSFADE_MS,
@@ -75,11 +74,9 @@ function prefersDataSaver() {
 
 export function CampaignHero({
   slides,
-  flashEndsAt = null,
   onIndexChange,
 }: {
   slides: CampaignSlide[];
-  flashEndsAt?: string | null;
   onIndexChange?: (index: number) => void;
 }) {
   const safe = slides.filter((s) => s.products.length >= 1);
@@ -198,7 +195,6 @@ export function CampaignHero({
         {safe.map((slide, i) => {
           const on = i === index;
           const t = THEME[slide.theme];
-          const offerProducts = slide.products.slice(0, 2);
           return (
             <article
               key={slide.id}
@@ -212,12 +208,12 @@ export function CampaignHero({
               }}
             >
               <SlideBackdrop slide={slide} active={on && showMotion} />
-              <div className="relative z-10 flex h-full flex-col justify-center gap-4 p-4 sm:p-6 md:flex-row md:items-stretch md:justify-between md:gap-6 md:px-10 md:py-8 lg:gap-10 lg:px-14 lg:py-10 xl:px-16">
-                <div className="flex max-w-xl shrink-0 flex-col justify-center md:max-w-[48%] lg:max-w-[42%]">
+              <div className="relative z-10 flex h-full flex-col justify-center p-4 sm:p-6 md:px-10 md:py-8 lg:px-12 lg:py-10 xl:px-14">
+                <div className="flex max-w-xl flex-col justify-center md:max-w-[70%] lg:max-w-[65%]">
                   <p className={`text-[10px] font-semibold tracking-[0.2em] lg:text-xs ${t.accent}`}>
                     {slide.eyebrow}
                   </p>
-                  <h2 className="mt-1.5 font-display text-[1.55rem] font-bold leading-[1.08] sm:text-[1.85rem] md:text-[2.2rem] lg:text-[3rem] xl:text-[3.4rem]">
+                  <h2 className="mt-1.5 font-display text-[1.55rem] font-bold leading-[1.08] sm:text-[1.85rem] md:text-[2.2rem] lg:text-[2.75rem] xl:text-[3.1rem]">
                     <span className={showMotion && on ? "hero-rise" : ""}>{slide.headline}</span>
                     <br />
                     <span
@@ -244,16 +240,6 @@ export function CampaignHero({
                     </Link>
                   </div>
                 </div>
-
-                {offerProducts.length > 0 ? (
-                  <div
-                    className={`hidden min-h-0 w-full max-w-md flex-1 md:flex md:max-w-[44%] lg:max-w-[420px] ${
-                      showMotion && on ? "hero-tiles-in" : ""
-                    }`}
-                  >
-                    <HeroOfferCards products={offerProducts} flashEndsAt={flashEndsAt} />
-                  </div>
-                ) : null}
               </div>
             </article>
           );
@@ -363,28 +349,17 @@ function SlideBackdrop({
   );
 }
 
-/** Two stacked offer cards inside the carousel (and phone rail). */
-export function HeroOfferCards({
-  products,
-  flashEndsAt = null,
-  showTimer = true,
-}: {
-  products: CampaignProduct[];
-  flashEndsAt?: string | null;
-  /** When false, timer is rendered by the parent (e.g. shared phone rail header). */
-  showTimer?: boolean;
-}) {
+/** Two stacked offer cards — used in the static yellow flash panel. */
+export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-2">
-      {showTimer ? <FlashCountdown endsAt={flashEndsAt} compact /> : null}
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="flex h-full min-h-0 w-full flex-col gap-2.5 sm:gap-3">
       {products.slice(0, 2).map((product) => {
         const pct = discountPercent(product.price, product.oldPrice);
         return (
           <Link
             key={product.id}
             href={`/product/${product.slug}`}
-            className="flex min-h-[100px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white/95 shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-xl lg:min-h-[120px]"
+            className="flex min-h-[96px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-ink/10 transition hover:shadow-lg lg:min-h-0"
           >
             <div className="relative w-[40%] shrink-0 self-stretch bg-ink/[0.03] sm:w-[42%]">
               <Image
@@ -416,7 +391,6 @@ export function HeroOfferCards({
           </Link>
         );
       })}
-      </div>
     </div>
   );
 }

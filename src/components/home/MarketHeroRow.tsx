@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { CategorySidebar } from "@/components/home/CategorySidebar";
 import {
   CampaignHero,
-  HeroOfferCards,
+  type CampaignProduct,
   type CampaignSlide,
 } from "@/components/home/CampaignHero";
 import { DepartmentTiles } from "@/components/home/DepartmentTiles";
-import { FlashCountdown } from "@/components/home/FlashCountdown";
+import { HeroFlashPanel } from "@/components/home/HeroFlashPanel";
+import { useProducts } from "@/context/ProductsContext";
+import { discountPercent } from "@/lib/format";
 
 /** Full viewport under top strip + navbar + large category strip */
 const DESKTOP_HERO_H = "lg:h-[calc(100dvh-9.5rem)]";
@@ -21,12 +23,34 @@ export function MarketHeroRow({
   flashEndsAt?: string | null;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const { products } = useProducts();
 
-  const offers = useMemo(() => {
-    const slide = slides[activeIndex] ?? slides[0];
-    return slide?.products.slice(0, 2) ?? [];
-  }, [slides, activeIndex]);
+  /** Stable flash products — never swap when the carousel advances. */
+  const flashProducts: CampaignProduct[] = useMemo(() => {
+    const marked = products.filter((p) => p.flashDeal && p.live !== false);
+    const list =
+      marked.length > 0
+        ? marked
+        : products.filter((p) => p.oldPrice != null && p.oldPrice > p.price);
+    const sorted = [...list].sort((a, b) => {
+      const da = discountPercent(a.price, a.oldPrice) ?? 0;
+      const db = discountPercent(b.price, b.oldPrice) ?? 0;
+      return db - da;
+    });
+    const picked = sorted.slice(0, 2);
+    if (picked.length >= 2) {
+      return picked.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        price: p.price,
+        oldPrice: p.oldPrice,
+        image: p.images[0] ?? "/products/p01.jpg",
+      }));
+    }
+    // Fallback: first slide catalogue picks (still fixed, not per-slide)
+    return slides[0]?.products.slice(0, 2) ?? [];
+  }, [products, slides]);
 
   useEffect(() => {
     const handler = () => setDrawerOpen(true);
@@ -37,31 +61,18 @@ export function MarketHeroRow({
   return (
     <>
       <div className={`w-full px-3 pt-3 sm:px-4 lg:px-6 ${DESKTOP_HERO_H}`}>
-        <div className="h-full min-h-0 w-full">
-          <CampaignHero
-            slides={slides}
-            flashEndsAt={flashEndsAt}
-            onIndexChange={setActiveIndex}
-          />
-        </div>
-      </div>
+        <div className="flex h-full min-h-0 w-full flex-col gap-3 md:flex-row md:gap-3 lg:gap-4">
+          {/* Carousel — cuts off where the flash panel begins */}
+          <div className="min-h-[260px] min-w-0 flex-1 md:min-h-[380px] lg:min-h-0">
+            <CampaignHero slides={slides} />
+          </div>
 
-      {/* Phone offers — tablet/desktop cards live inside the carousel */}
-      <div className="mt-3 md:hidden">
-        <div className="mb-2 px-3">
-          <FlashCountdown endsAt={flashEndsAt} compact />
-        </div>
-        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-ink/45">
-          Flash offers
-        </p>
-        <div className="flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:thin] snap-x">
-          {offers.map((p) => (
-            <div key={p.id} className="w-[82%] shrink-0 snap-start">
-              <div className="h-[128px]">
-                <HeroOfferCards products={[p]} showTimer={false} />
-              </div>
+          {/* Static yellow flash end — timer + two cards, no slide animation */}
+          {flashProducts.length > 0 ? (
+            <div className="w-full shrink-0 md:w-[min(42%,400px)] md:min-h-[380px] lg:w-[min(36%,420px)] lg:min-h-0">
+              <HeroFlashPanel products={flashProducts} flashEndsAt={flashEndsAt} />
             </div>
-          ))}
+          ) : null}
         </div>
       </div>
 
