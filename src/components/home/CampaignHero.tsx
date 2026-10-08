@@ -195,7 +195,7 @@ export function CampaignHero({
         {safe.map((slide, i) => {
           const on = i === index;
           const t = THEME[slide.theme];
-          const circleProducts = slide.products.slice(0, 3);
+          const offerProducts = slide.products.slice(0, 2);
           return (
             <article
               key={slide.id}
@@ -209,8 +209,8 @@ export function CampaignHero({
               }}
             >
               <SlideBackdrop slide={slide} active={on && showMotion} />
-              <div className="relative z-10 flex h-full flex-col justify-center gap-4 p-4 sm:p-6 md:flex-row md:items-center md:justify-between md:gap-6 md:px-10 md:py-8 lg:gap-8 lg:px-14 lg:py-10 xl:px-16">
-                <div className="flex max-w-xl shrink-0 flex-col justify-center md:max-w-[42%] lg:max-w-[38%]">
+              <div className="relative z-10 flex h-full flex-col justify-center gap-4 p-4 sm:p-6 md:flex-row md:items-stretch md:justify-between md:gap-6 md:px-10 md:py-8 lg:gap-10 lg:px-14 lg:py-10 xl:px-16">
+                <div className="flex max-w-xl shrink-0 flex-col justify-center md:max-w-[48%] lg:max-w-[42%]">
                   <p className={`text-[10px] font-semibold tracking-[0.2em] lg:text-xs ${t.accent}`}>
                     {slide.eyebrow}
                   </p>
@@ -242,23 +242,13 @@ export function CampaignHero({
                   </div>
                 </div>
 
-                {/* Up to 3 circular product pills with price tags — change with each slide */}
-                {circleProducts.length > 0 ? (
+                {offerProducts.length > 0 ? (
                   <div
-                    className={`hidden items-end justify-end gap-3 md:flex md:flex-1 lg:gap-5 ${
+                    className={`hidden min-h-0 w-full max-w-md flex-1 md:flex md:max-w-[44%] lg:max-w-[420px] ${
                       showMotion && on ? "hero-tiles-in" : ""
                     }`}
                   >
-                    {circleProducts.map((p, pi) => (
-                      <CircleProduct
-                        key={p.id}
-                        product={p}
-                        theme={slide.theme}
-                        size={pi === 1 ? "lg" : "md"}
-                        rotate={pi === 0 ? -6 : pi === 1 ? 2 : -3}
-                        animate={showMotion && on}
-                      />
-                    ))}
+                    <HeroOfferCards products={offerProducts} />
                   </div>
                 ) : null}
               </div>
@@ -370,79 +360,48 @@ function SlideBackdrop({
   );
 }
 
-/** Circular product with price bubble — used in hero (and phone rail) */
-export function CircleProduct({
-  product,
-  theme,
-  size = "md",
-  rotate = 0,
-  animate = false,
-}: {
-  product: CampaignProduct;
-  theme: HeroTheme;
-  size?: "sm" | "md" | "lg";
-  rotate?: number;
-  animate?: boolean;
-}) {
-  const t = THEME[theme];
-  const pct = discountPercent(product.price, product.oldPrice);
-  const dim =
-    size === "lg"
-      ? "h-[148px] w-[148px] lg:h-[180px] lg:w-[180px]"
-      : size === "sm"
-        ? "h-[100px] w-[100px]"
-        : "h-[120px] w-[120px] lg:h-[150px] lg:w-[150px]";
-  const bubble =
-    size === "lg"
-      ? "h-[68px] w-[68px] lg:h-[78px] lg:w-[78px] text-[11px] lg:text-sm"
-      : size === "sm"
-        ? "h-[52px] w-[52px] text-[9px]"
-        : "h-[58px] w-[58px] lg:h-[68px] lg:w-[68px] text-[10px] lg:text-[11px]";
-
-  return (
-    <Link
-      href={`/product/${product.slug}`}
-      className={`relative shrink-0 ${animate ? "hero-float-tile" : ""}`}
-      style={{ transform: `rotate(${rotate}deg)` }}
-      aria-label={`${product.name}, ${formatKes(product.price)}`}
-    >
-      <span
-        className={`relative block overflow-hidden rounded-full bg-white shadow-xl ring-4 ring-white/80 ${dim}`}
-      >
-        <Image
-          src={product.image}
-          alt=""
-          fill
-          className="object-contain p-3"
-          sizes="180px"
-        />
-      </span>
-      <span
-        className={`absolute -bottom-1 -right-1 flex flex-col items-center justify-center rounded-full text-center shadow-md ring-2 ring-white ${bubble} ${t.bubble} ${
-          animate ? "hero-bubble-in" : ""
-        }`}
-      >
-        <span className="text-[7px] font-semibold leading-none opacity-80 lg:text-[8px]">KES</span>
-        <span className="font-bold leading-tight">
-          {product.price.toLocaleString("en-KE")}
-        </span>
-        {product.oldPrice && pct != null ? (
-          <span className="text-[7px] line-through opacity-65 lg:text-[8px]">
-            {product.oldPrice.toLocaleString("en-KE")}
-          </span>
-        ) : null}
-      </span>
-    </Link>
-  );
-}
-
-/** @deprecated kept for any remaining callers — prefer CircleProduct */
+/** Two stacked offer cards inside the carousel (and phone rail). */
 export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
   return (
-    <div className="flex items-center gap-3">
-      {products.slice(0, 3).map((p, i) => (
-        <CircleProduct key={p.id} product={p} theme="sun" size={i === 1 ? "lg" : "md"} />
-      ))}
+    <div className="flex h-full min-h-0 w-full flex-col gap-3">
+      {products.slice(0, 2).map((product) => {
+        const pct = discountPercent(product.price, product.oldPrice);
+        return (
+          <Link
+            key={product.id}
+            href={`/product/${product.slug}`}
+            className="flex min-h-[120px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white/95 shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-xl lg:min-h-[140px]"
+          >
+            <div className="relative w-[40%] shrink-0 self-stretch bg-ink/[0.03] sm:w-[42%]">
+              <Image
+                src={product.image}
+                alt=""
+                fill
+                className="object-contain p-2"
+                sizes="180px"
+              />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-3">
+              {pct != null ? (
+                <span className="w-fit rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-ink">
+                  -{pct}%
+                </span>
+              ) : null}
+              <p className="mt-1 line-clamp-2 text-sm font-semibold text-ink lg:text-base">
+                {product.name}
+              </p>
+              <p className="mt-1 font-display text-base font-bold text-ink lg:text-lg">
+                {formatKes(product.price)}
+                {product.oldPrice && pct != null ? (
+                  <span className="ml-1.5 text-xs font-normal text-ink/40 line-through">
+                    {formatKes(product.oldPrice)}
+                  </span>
+                ) : null}
+              </p>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

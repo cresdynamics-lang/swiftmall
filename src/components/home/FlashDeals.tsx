@@ -142,8 +142,7 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[380px_1fr]">
-          {feature ? <DealOfTheHour product={feature} /> : null}
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_380px]">
           <div
             ref={railRef}
             className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:thin] snap-x snap-mandatory"
@@ -158,6 +157,7 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
               </div>
             ))}
           </div>
+          {feature ? <DealOfTheHour product={feature} /> : null}
         </div>
       </div>
     </section>

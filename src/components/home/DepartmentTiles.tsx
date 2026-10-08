@@ -5,49 +5,57 @@ import Link from "next/link";
 import { useCategories } from "@/context/CategoriesContext";
 import { categoryImage } from "@/lib/categories";
 
+const RING: Record<string, string> = {
+  "health-and-beauty": "ring-amber-400",
+  "kitchen-and-home": "ring-sky-400",
+  electronics: "ring-violet-400",
+  "phones-and-accessories": "ring-amber-400",
+  "gifts-and-accessories": "ring-sky-400",
+  fashion: "ring-amber-400",
+};
+
 export function DepartmentTiles() {
   const categories = useCategories().filter((c) => c.slug !== "others");
 
   return (
     <section className="mx-auto max-w-7xl px-3 py-4 sm:px-4">
-      <h2 className="mb-2.5 font-display text-xs font-bold uppercase tracking-wide text-ink/55 sm:text-sm">
+      <h2 className="mb-3 font-display text-xs font-bold uppercase tracking-wide text-ink/55 sm:text-sm">
         Shop by department
       </h2>
       <div
-        className="grid gap-1.5 sm:gap-2"
+        className="grid gap-x-2 gap-y-3 sm:gap-x-3 sm:gap-y-4"
         style={{
           gridTemplateColumns: `repeat(${Math.max(categories.length, 1)}, minmax(0, 1fr))`,
         }}
       >
         {categories.map((c) => {
           const src = c.image ?? categoryImage(c.slug);
+          const ring = RING[c.slug] ?? "ring-brand";
           return (
             <Link
               key={c.slug}
               href={`/category/${c.slug}`}
-              className="group relative block aspect-[5/4] overflow-hidden rounded-md bg-ink ring-1 ring-ink/10 transition duration-300 hover:shadow-md hover:ring-brand sm:aspect-[4/3] sm:rounded-lg"
+              className="group flex flex-col items-center text-center"
             >
-              {src ? (
-                <Image
-                  src={src}
-                  alt={c.name}
-                  fill
-                  className="object-cover transition duration-500 group-hover:scale-105"
-                  sizes="(max-width: 640px) 16vw, 140px"
-                />
-              ) : (
-                <span className="absolute inset-0 flex items-center justify-center bg-ink px-1 font-display text-[9px] font-bold text-white sm:text-xs">
-                  {c.shortName}
-                </span>
-              )}
               <span
-                aria-hidden
-                className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black via-black/70 to-transparent"
-              />
-              <span className="absolute inset-x-0 bottom-0 px-1 pb-1 pt-3 sm:px-1.5 sm:pb-1.5">
-                <span className="line-clamp-2 text-center text-[8px] font-semibold leading-tight text-white sm:text-[10px] md:text-[11px]">
-                  {c.shortName}
-                </span>
+                className={`relative mx-auto block aspect-square w-full max-w-[72px] overflow-hidden rounded-full bg-white ring-2 ${ring} transition duration-300 group-hover:scale-105 group-hover:shadow-md sm:max-w-[96px] md:max-w-[112px]`}
+              >
+                {src ? (
+                  <Image
+                    src={src}
+                    alt={c.name}
+                    fill
+                    className="object-cover transition duration-300 group-hover:scale-110"
+                    sizes="112px"
+                  />
+                ) : (
+                  <span className="flex h-full items-center justify-center bg-ink px-1 font-display text-[9px] font-bold text-white sm:text-xs">
+                    {c.shortName}
+                  </span>
+                )}
+              </span>
+              <span className="mt-1.5 line-clamp-2 max-w-[5.5rem] text-[9px] font-semibold leading-tight text-ink sm:mt-2 sm:max-w-[7rem] sm:text-[11px] md:text-xs">
+                {c.shortName}
               </span>
             </Link>
           );

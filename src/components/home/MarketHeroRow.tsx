@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CategorySidebar } from "@/components/home/CategorySidebar";
 import {
   CampaignHero,
-  CircleProduct,
+  HeroOfferCards,
   type CampaignSlide,
 } from "@/components/home/CampaignHero";
 import { DepartmentTiles } from "@/components/home/DepartmentTiles";
@@ -18,10 +18,8 @@ export function MarketHeroRow({ slides }: { slides: CampaignSlide[] }) {
 
   const offers = useMemo(() => {
     const slide = slides[activeIndex] ?? slides[0];
-    return slide?.products.slice(0, 3) ?? [];
+    return slide?.products.slice(0, 2) ?? [];
   }, [slides, activeIndex]);
-
-  const theme = slides[activeIndex]?.theme ?? "sun";
 
   useEffect(() => {
     const handler = () => setDrawerOpen(true);
@@ -37,17 +35,18 @@ export function MarketHeroRow({ slides }: { slides: CampaignSlide[] }) {
         </div>
       </div>
 
-      {/* Phone: same circular tagged products under the hero */}
-      <div className="mt-4 md:hidden">
-        <div className="flex justify-center gap-4 overflow-x-auto px-3 pb-2 [scrollbar-width:thin]">
-          {offers.map((p, i) => (
-            <CircleProduct
-              key={p.id}
-              product={p}
-              theme={theme}
-              size={i === 1 ? "md" : "sm"}
-              rotate={i === 0 ? -4 : i === 2 ? 4 : 0}
-            />
+      {/* Phone offers — tablet/desktop cards live inside the carousel */}
+      <div className="mt-3 md:hidden">
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-ink/45">
+          Offers
+        </p>
+        <div className="flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:thin] snap-x">
+          {offers.map((p) => (
+            <div key={p.id} className="w-[82%] shrink-0 snap-start">
+              <div className="h-[128px]">
+                <HeroOfferCards products={[p]} />
+              </div>
+            </div>
           ))}
         </div>
       </div>
