@@ -14,6 +14,7 @@ const WIDGET_ID = process.env.NEXT_PUBLIC_TAWK_WIDGET_ID ?? "default";
 export function TawkChat() {
   const pathname = usePathname();
   if (!PROPERTY_ID) return null;
+  // Checkout form hides chat; confirmation page loads OrderTawkNotify instead.
   if (pathname.startsWith("/checkout") || pathname.startsWith("/management")) return null;
 
   return (

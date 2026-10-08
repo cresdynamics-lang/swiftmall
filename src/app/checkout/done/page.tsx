@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
+import { OrderTawkNotify } from "@/components/checkout/OrderTawkNotify";
 import { CreatePasswordForm } from "@/app/checkout/done/CreatePasswordForm";
 import { getStoreSettings } from "@/lib/settings";
+import { orderTawkAttributes, toNotifyPayload } from "@/lib/order-notify";
+import { getOrderByNumberAndEmail } from "@/lib/orders";
 import { storeConfig } from "@/lib/store-config";
 import { prisma } from "@/lib/db";
 
@@ -19,6 +22,11 @@ export default async function CheckoutDonePage({ searchParams }: PageProps) {
     ? await prisma.customer.findUnique({ where: { email } })
     : null;
   const hasPassword = Boolean(existing?.passwordHash);
+
+  const placed =
+    Number.isFinite(orderNumber) && email
+      ? await getOrderByNumberAndEmail(orderNumber, email)
+      : null;
 
   return (
     <div className="min-h-screen bg-page">
@@ -64,6 +72,15 @@ export default async function CheckoutDonePage({ searchParams }: PageProps) {
 
         <p className="mt-6 text-xs text-ink/40">{storeConfig.domain}</p>
       </div>
+
+      {placed ? (
+        <OrderTawkNotify
+          name={placed.customerName}
+          email={placed.email}
+          phone={placed.phone}
+          attributes={orderTawkAttributes(toNotifyPayload(placed))}
+        />
+      ) : null}
     </div>
   );
 }

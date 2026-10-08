@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { OrderStatus } from "@prisma/client";
 import { updateOrderNote, updateOrderStatus } from "@/app/management/actions";
 import {
@@ -53,6 +53,13 @@ export function OrdersBoard({
   const [note, setNote] = useState(initialOrders[0]?.note ?? "");
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    setOrders(initialOrders);
+    setSelectedId((prev) =>
+      initialOrders.some((o) => o.id === prev) ? prev : (initialOrders[0]?.id ?? ""),
+    );
+  }, [initialOrders]);
+
   const visible = useMemo(
     () => orders.filter((o) => matchesFilter(o, filter)),
     [orders, filter],
@@ -97,8 +104,25 @@ export function OrdersBoard({
     });
   }
 
+  const newCount = orders.filter((o) => o.status === "NEW").length;
+
   return (
     <div className="space-y-5">
+      {newCount > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand/25 px-4 py-3 ring-1 ring-brand/40">
+          <p className="text-sm font-semibold text-ink">
+            {newCount} new order{newCount === 1 ? "" : "s"} waiting
+          </p>
+          <button
+            type="button"
+            onClick={() => setFilter("new")}
+            className="rounded-md bg-ink px-3 py-1.5 text-xs font-semibold text-white hover:bg-ink/90"
+          >
+            Show new
+          </button>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="mr-2 font-display text-2xl font-bold">Orders</h1>
         {filters.map((f) => (

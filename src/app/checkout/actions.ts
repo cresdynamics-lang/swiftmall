@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { PaymentMethod } from "@prisma/client";
+import { notifyOwnerOfNewOrder } from "@/lib/order-notify";
 import { placeOrder } from "@/lib/orders";
 import { getStoreSettings } from "@/lib/settings";
 
@@ -43,6 +44,11 @@ export async function submitCheckout(formData: FormData): Promise<{ orderNumber:
     depositShare: settings.depositShare,
     lines,
   });
+
+  // Owner alert (email / optional WhatsApp / webhook / tawk ticket) — never block checkout.
+  void notifyOwnerOfNewOrder(order).catch((err) =>
+    console.error("[checkout] order notify failed", err),
+  );
 
   revalidatePath("/management");
   revalidatePath("/management/orders");

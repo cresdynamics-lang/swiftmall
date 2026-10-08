@@ -99,6 +99,17 @@ export async function getOrderById(id: string): Promise<OrderWithItems | null> {
   });
 }
 
+export async function getOrderByNumberAndEmail(
+  number: number,
+  email: string,
+): Promise<OrderWithItems | null> {
+  if (!Number.isFinite(number) || !email) return null;
+  return prisma.order.findFirst({
+    where: { number, email: email.trim().toLowerCase() },
+    include: { items: true, customer: true },
+  });
+}
+
 export async function getOrderStats() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
