@@ -49,6 +49,7 @@ export const HERO_SLIDES: HeroSlideDef[] = [
     productSlugs: [
       "skyworth-65-qled-google-tv",
       "ecomax-2-1-multimedia-bluetooth-speakers",
+      "car-jump-starter-air-compressor-kit",
     ],
   },
   {
