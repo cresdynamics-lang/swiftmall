@@ -18,16 +18,6 @@ const ORDER = [
   "others",
 ];
 
-const ICONS: Record<string, string> = {
-  "health-and-beauty": "✦",
-  "kitchen-and-home": "◎",
-  electronics: "▣",
-  "phones-and-accessories": "▤",
-  "gifts-and-accessories": "♡",
-  fashion: "◈",
-  others: "◇",
-};
-
 export function CategorySidebar({
   className = "",
   mobile = false,
@@ -124,13 +114,10 @@ export function CategorySidebar({
                   onMouseEnter={() => scheduleOpen(cat.slug)}
                   onFocus={() => scheduleOpen(cat.slug)}
                   onKeyDown={(e) => onKeyRow(e, idx, cat)}
-                  className={`relative flex min-h-11 flex-1 items-center gap-2.5 px-3 text-left text-sm text-ink ${
+                  className={`relative flex min-h-11 flex-1 items-center gap-2 px-3 text-left text-sm text-ink ${
                     open ? "font-semibold before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-brand" : ""
                   }`}
                 >
-                  <span className="w-5 text-center text-ink/70" aria-hidden>
-                    {ICONS[cat.slug] ?? "•"}
-                  </span>
                   <span className="flex-1 truncate">{cat.name}</span>
                   <span className="text-ink/35">›</span>
                 </Link>
