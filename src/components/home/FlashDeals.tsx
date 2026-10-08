@@ -1,19 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
-import { useCart } from "@/context/CartContext";
+import { ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
-import {
-  discountPercent,
-  formatKes,
-  isLowStock,
-  saveAmount,
-} from "@/lib/format";
-import type { Product } from "@/lib/product-types";
+import { discountPercent } from "@/lib/format";
 
 function useRealCountdown(endsAt: string | null) {
   const end = endsAt ? new Date(endsAt).getTime() : NaN;
@@ -31,18 +22,6 @@ function useRealCountdown(endsAt: string | null) {
   const m = Math.floor((remaining % 3600) / 60);
   const s = remaining % 60;
   return { remaining, h, m, s, ended: remaining <= 0 };
-}
-
-function endsLabel(endsAt: string | null): string {
-  if (!endsAt) return "";
-  const end = new Date(endsAt);
-  const startOfTomorrow = new Date();
-  startOfTomorrow.setHours(24, 0, 0, 0);
-  if (end.getTime() <= startOfTomorrow.getTime()) return "Ends today";
-  const week = new Date();
-  week.setDate(week.getDate() + 7);
-  if (end.getTime() <= week.getTime()) return "Ends this week";
-  return `Ends ${end.toLocaleDateString("en-KE", { day: "numeric", month: "short" })}`;
 }
 
 export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
@@ -63,9 +42,6 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
       return db - da;
     });
   }, [products]);
-
-  const feature = deals[0];
-  const rail = deals.slice(1);
 
   if (!flashEndsAt || clock?.ended) {
     return (
@@ -94,8 +70,8 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
             <h2 className="font-display text-xl font-bold sm:text-2xl">
               ⚡ Flash Sale
             </h2>
-            <span className="text-xs font-semibold text-white/55">
-              {endsLabel(flashEndsAt)}
+            <span className="rounded bg-brand px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">
+              Deal of the hour
             </span>
             <Link
               href="/deals"
@@ -106,133 +82,18 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
-          {feature ? (
-            <div className="mx-auto max-w-md lg:ml-auto lg:mr-0 lg:max-w-sm">
-              <DealOfTheHour product={feature} />
+        {/* One equal-card row: 3 on small screens, 6 on desktop; scroll if more */}
+        <div className="mt-4 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin] sm:gap-2.5 lg:gap-3">
+          {deals.map((p) => (
+            <div
+              key={p.id}
+              className="w-[calc((100%-1rem)/3)] min-w-[calc((100%-1rem)/3)] shrink-0 sm:w-[calc((100%-1.25rem)/3)] sm:min-w-[calc((100%-1.25rem)/3)] lg:w-[calc((100%-3.75rem)/6)] lg:min-w-[calc((100%-3.75rem)/6)]"
+            >
+              <ProductCard product={p} variant="flash" />
             </div>
-          ) : null}
-          <div className={PRODUCT_GRID_CLASS}>
-            {rail.map((p) => (
-              <ProductCard key={p.id} product={p} variant="flash" />
-            ))}
-          </div>
+          ))}
         </div>
       </div>
     </section>
-  );
-}
-
-function DealOfTheHour({ product }: { product: Product }) {
-  const { add } = useCart();
-  const router = useRouter();
-  const [added, setAdded] = useState(false);
-  const pct = discountPercent(product.price, product.oldPrice);
-  const save = saveAmount(product.price, product.oldPrice);
-  const low = isLowStock(product.stock, 5);
-  const needsSize = product.sizes.length > 0;
-  const inStock = product.stock > 0;
-
-  useEffect(() => {
-    if (!added) return;
-    const t = setTimeout(() => setAdded(false), 2000);
-    return () => clearTimeout(t);
-  }, [added]);
-
-  return (
-    <div className="overflow-hidden rounded-xl bg-white text-ink ring-1 ring-white/10">
-      <div className="relative aspect-[4/3] bg-ink/[0.03]">
-        <Image
-          src={product.images[0] ?? "/products/p01.jpg"}
-          alt={product.name}
-          fill
-          className="object-contain p-3"
-          sizes="380px"
-        />
-        {pct != null ? (
-          <span className="absolute left-3 top-3 rounded bg-brand px-2 py-1 text-[11px] font-bold uppercase text-ink">
-            Deal of the hour · -{pct}%
-          </span>
-        ) : (
-          <span className="absolute left-3 top-3 rounded bg-brand px-2 py-1 text-[11px] font-bold uppercase text-ink">
-            Deal of the hour
-          </span>
-        )}
-      </div>
-      <div className="p-4">
-        <Link
-          href={`/product/${product.slug}`}
-          className="line-clamp-2 font-display text-lg font-bold hover:underline"
-        >
-          {product.name}
-        </Link>
-        <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
-          {product.oldPrice && pct != null ? (
-            <span className="text-sm text-ink/40 line-through">
-              {formatKes(product.oldPrice)}
-            </span>
-          ) : null}
-          <span className="font-display text-2xl font-bold">
-            {formatKes(product.price)}
-          </span>
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm">
-          {save != null ? (
-            <span className="font-bold">Save {formatKes(save)}</span>
-          ) : null}
-          {inStock ? (
-            low ? (
-              <span className="font-semibold text-orange-600">
-                Only {product.stock} left
-              </span>
-            ) : (
-              <span className="text-stock">In stock</span>
-            )
-          ) : (
-            <span className="text-red-600">Out of stock</span>
-          )}
-        </div>
-        {needsSize ? (
-          <Link
-            href={`/product/${product.slug}`}
-            className="mt-4 block w-full rounded-md bg-brand py-3 text-center text-sm font-semibold text-ink hover:bg-brand-dark"
-          >
-            Choose size
-          </Link>
-        ) : added ? (
-          <Link
-            href="/cart"
-            className="mt-4 block w-full rounded-md bg-ink py-3 text-center text-sm font-semibold text-brand"
-          >
-            ✓ Added · View cart
-          </Link>
-        ) : (
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              disabled={!inStock}
-              onClick={() => {
-                add(product.id);
-                router.push("/checkout");
-              }}
-              className="rounded-md bg-ink py-2.5 text-sm font-semibold text-white hover:bg-ink/90 disabled:opacity-40"
-            >
-              Buy Now
-            </button>
-            <button
-              type="button"
-              disabled={!inStock}
-              onClick={() => {
-                add(product.id);
-                setAdded(true);
-              }}
-              className="rounded-md bg-brand py-2.5 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-40"
-            >
-              Add to Cart
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
