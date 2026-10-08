@@ -302,6 +302,9 @@ export default function CheckoutPage() {
               >
                 {pending ? "Submitting…" : payLabel}
               </button>
+              <p className="mt-3 text-center text-xs text-ink/55">
+                We will call or WhatsApp you to confirm your order.
+              </p>
               <Link
                 href="/"
                 className="mt-2 block text-center text-sm font-medium text-ink/70 hover:text-ink"

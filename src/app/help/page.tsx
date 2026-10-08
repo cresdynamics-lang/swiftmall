@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 const links = [
-  { href: "/help/how-to-order", label: "How to order" },
-  { href: "/help/delivery", label: "Delivery" },
-  { href: "/help/payment", label: "Payment" },
-  { href: "/help/returns", label: "Returns" },
+  { href: "/how-to-order", label: "How to order" },
+  { href: "/delivery", label: "Delivery" },
+  { href: "/payments", label: "Payment" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact" },
   { href: "/help/terms", label: "Terms" },
   { href: "/help/privacy", label: "Privacy" },
   { href: "/track", label: "Track my order" },

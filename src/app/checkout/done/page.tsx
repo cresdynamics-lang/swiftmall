@@ -40,15 +40,23 @@ export default async function CheckoutDonePage({ searchParams }: PageProps) {
           Checkout › <span className="text-ink">Done</span>
         </p>
         <h1 className="mt-4 font-display text-3xl font-bold text-ink">
-          Order submitted successfully
+          {placed
+            ? `Thank you, ${placed.customerName.split(/\s+/)[0]}. We have your order.`
+            : "Thank you. We have your order."}
         </h1>
         {order ? (
           <p className="mt-2 font-display text-xl font-bold text-brand">#{order}</p>
         ) : null}
         <p className="mt-3 text-sm text-ink/65">
-          We have your details and will confirm by email / WhatsApp (
-          {settings.whatsappNumber}). For Pay now or deposit, use M-Pesa Paybill{" "}
-          <strong>{settings.paybill}</strong> (account <strong>{settings.bankAccount}</strong>).
+          We will call or WhatsApp you
+          {placed ? ` on ${placed.phone}` : ` on ${settings.whatsappNumber}`} to confirm. For Pay
+          now or deposit, use M-Pesa Paybill <strong>{settings.paybill}</strong> (account{" "}
+          <strong>{settings.bankAccount}</strong>).
+        </p>
+        <p className="mt-2 text-sm">
+          <Link href="/track" className="font-semibold text-ink underline">
+            Track my order
+          </Link>
         </p>
 
         {email && Number.isFinite(orderNumber) && !hasPassword ? (

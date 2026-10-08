@@ -21,11 +21,11 @@ const sora = Sora({
 
 export const metadata: Metadata = {
   title: {
-    default: `${storeConfig.name} | ${storeConfig.tagline}`,
-    template: `%s | ${storeConfig.name}`,
+    default: "Swift Mall | Online Shop Kenya: Beauty, Electronics, Phones, Home",
+    template: `%s | Swift Mall`,
   },
   description:
-    "Countrywide online store for health & beauty, home, electronics, phones, gifts and fashion. Shop · Pay · Delivered on swiftmall.co.ke.",
+    "Shop health & beauty, kitchen appliances, electronics, phones, gifts and fashion online in Kenya. Pay on delivery. Countrywide delivery at a flat KES 250.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -35,6 +35,11 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
   },
   metadataBase: new URL(`https://${storeConfig.domain}`),
+  openGraph: {
+    type: "website",
+    siteName: "Swift Mall",
+    locale: "en_KE",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

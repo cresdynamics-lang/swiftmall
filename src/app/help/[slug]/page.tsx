@@ -1,61 +1,51 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
+import { business } from "@/lib/business";
 import { storeConfig } from "@/lib/store-config";
 
+/** Legacy help slugs → new trust URLs */
+const redirects: Record<string, string> = {
+  delivery: "/delivery",
+  payment: "/payments",
+  "how-to-order": "/how-to-order",
+  returns: "/returns",
+};
+
 const pages: Record<string, { title: string; body: string[] }> = {
-  delivery: {
-    title: "Delivery",
-    body: [
-      `We deliver countrywide for a flat KES ${storeConfig.shippingFlatKes}.`,
-      "Enter your county, town and address at checkout. We arrange shipping and will contact you on WhatsApp or phone with delivery updates.",
-    ],
-  },
-  returns: {
-    title: "Returns",
-    body: [
-      "Return or exchange rules will be confirmed with the store owner before launch.",
-      "Contact us on WhatsApp with your order number if an item arrives damaged.",
-    ],
-  },
   terms: {
     title: "Terms",
     body: [
       "By placing an order you agree that we may contact you about that order for delivery and payment.",
-      "Product names and prices on sample listings may change; the cart total at checkout is what you pay.",
+      "The cart total at checkout, plus the flat delivery fee when it applies, is what you pay.",
+      `Questions: WhatsApp or call ${business.phone}, or email ${business.email}.`,
     ],
   },
   privacy: {
     title: "Privacy",
     body: [
-      "Your details are used only for delivery and order communication, in line with the Kenya Data Protection Act.",
+      "What we collect: your name, phone number, email, delivery address and order details when you place an order or contact us.",
+      "Why: to confirm your order, arrange delivery, and answer your questions.",
+      "Who sees it: Swift Mall staff handling your order, and the delivery rider for your address and phone on delivery day.",
       "We do not sell customer data.",
-    ],
-  },
-  payment: {
-    title: "Payment",
-    body: [
-      "Three options at checkout: Pay a deposit, Pay now, or Cash on delivery.",
-      `Pay now / deposit: M-Pesa → Lipa na M-Pesa → Pay Bill → Business number ${storeConfig.payments.paybill}, account ${storeConfig.payments.bankAccount}. WhatsApp / call ${storeConfig.whatsappNumber}.`,
-    ],
-  },
-  "how-to-order": {
-    title: "How to order",
-    body: [
-      "Browse, tap Add to Cart, then open the cart when you are ready.",
-      "Choose Proceed to Order, enter your delivery details, pick Pay a deposit, Pay now, or Cash on delivery, then submit.",
+      `How to ask for your data to be removed: email ${business.email} or WhatsApp ${business.whatsapp} with your name and phone. We will respond as required under the Kenya Data Protection Act.`,
+      "Draft note for the owner or a lawyer: confirm this wording before treating it as a final legal privacy notice.",
     ],
   },
 };
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (redirects[slug]) return { title: "Help" };
   return { title: pages[slug]?.title ?? "Help" };
 }
 
 export default async function HelpPage({ params }: PageProps) {
   const { slug } = await params;
+  if (redirects[slug]) redirect(redirects[slug]);
+
   const page = pages[slug];
   if (!page) notFound();
 
@@ -70,6 +60,13 @@ export default async function HelpPage({ params }: PageProps) {
           <p key={p}>{p}</p>
         ))}
       </div>
+      {slug === "privacy" ? (
+        <p className="mt-6 text-xs text-ink/45">
+          This page is a draft for the owner or a lawyer to approve. It does not claim certified
+          legal compliance.
+        </p>
+      ) : null}
+      <p className="mt-6 text-xs text-ink/40">{storeConfig.domain}</p>
     </div>
   );
 }

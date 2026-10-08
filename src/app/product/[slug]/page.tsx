@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,17 +10,29 @@ import {
   ShopOtherDepartments,
 } from "@/components/product/ProductExtras";
 import { TrackView } from "@/components/product/TrackView";
+import { business } from "@/lib/business";
 import { listStoreCategories, getStoreCategory } from "@/lib/categories-db";
-import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
+import { discountPercent, formatKes, isLowStock, offerTagLabel } from "@/lib/format";
 import { getProduct, getProductsByCategory, listLiveProducts } from "@/lib/products";
-import { paymentLabels, storeConfig } from "@/lib/store-config";
+import { paymentLabels, whatsappHref } from "@/lib/store-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
-  return { title: product?.name ?? "Product" };
+  if (!product) return { title: "Product" };
+  const firstLine = (product.description || product.name).split(/[.!?]/)[0]?.trim() ?? product.name;
+  return {
+    title: `${product.name} Price in Kenya | Swift Mall`,
+    description: `${firstLine}. Pay on delivery. KES ${business.shippingFlatKes} countrywide delivery.`,
+    alternates: { canonical: `/product/${product.slug}` },
+    openGraph: {
+      title: product.name,
+      description: firstLine,
+      images: product.images[0] ? [{ url: product.images[0] }] : undefined,
+    },
+  };
 }
 
 export default async function ProductPage({ params }: PageProps) {
@@ -48,10 +61,60 @@ export default async function ProductPage({ params }: PageProps) {
     .filter((p) => p.id !== product.id && p.category !== product.category)
     .slice(0, 4);
 
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description || product.name,
+    image: product.images.map((src) =>
+      src.startsWith("http") ? src : `${business.url}${src}`,
+    ),
+    sku: product.sku || product.id,
+    ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
+    offers: {
+      "@type": "Offer",
+      url: `${business.url}/product/${product.slug}`,
+      priceCurrency: "KES",
+      price: product.price,
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+    },
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: business.url },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: cat?.name ?? "Shop",
+        item: `${business.url}/category/${product.category}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: `${business.url}/product/${product.slug}`,
+      },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <TrackView productId={product.id} />
-      <nav className="mb-4 text-sm text-ink/50">
+      <nav className="mb-4 text-sm text-ink/50" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-ink">
           Home
         </Link>
@@ -106,18 +169,22 @@ export default async function ProductPage({ params }: PageProps) {
             </span>
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm">
-            {save != null ? (
+            {save != null && product.oldPrice != null && product.oldPrice > product.price ? (
               <span className="font-semibold text-ink">
                 Save {formatKes(save)}
                 {discount != null ? ` (-${discount}%)` : ""}
               </span>
             ) : null}
             <span className={product.stock > 0 ? "text-stock" : "text-red-600"}>
-              {product.stock > 0 ? "In stock" : "Out of stock"}
+              {product.stock <= 0
+                ? "Out of stock"
+                : isLowStock(product.stock, 5)
+                  ? `Only ${product.stock} left`
+                  : "In stock"}
             </span>
           </div>
-          <p className="mt-2 text-sm text-ink/55">
-            Plus KES {storeConfig.shippingFlatKes} shipping at checkout · Cash on delivery available
+          <p className="mt-3 text-sm font-medium text-ink">
+            Pay on delivery available. Flat KES {business.shippingFlatKes} delivery countrywide.
           </p>
 
           <ProductActions
@@ -126,10 +193,46 @@ export default async function ProductPage({ params }: PageProps) {
             sizes={product.sizes}
           />
 
+          <a
+            href={whatsappHref(
+              `Hi Swift Mall, I'm interested in ${product.name}, ${business.url}/product/${product.slug}`,
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex min-h-11 w-full items-center justify-center rounded-md bg-[#25D366] px-4 text-sm font-semibold text-white hover:brightness-95"
+          >
+            Ask on WhatsApp
+          </a>
+
           <ProductWhatsAppOrder
             productName={product.name}
             priceLabel={formatKes(product.price)}
           />
+
+          <details className="mt-6 rounded-lg bg-white p-4 ring-1 ring-ink/8">
+            <summary className="cursor-pointer text-sm font-semibold text-ink">
+              Delivery and returns
+            </summary>
+            <div className="mt-3 space-y-2 text-sm text-ink/70">
+              <p>
+                Delivery is a flat KES {business.shippingFlatKes} countrywide. We call or WhatsApp
+                you to confirm before dispatch.
+              </p>
+              <p>
+                If the item arrives wrong, damaged or faulty, WhatsApp us on {business.whatsapp}{" "}
+                with your order number and a photo.
+              </p>
+              <p>
+                <Link href="/delivery" className="font-semibold underline">
+                  Delivery
+                </Link>
+                {" · "}
+                <Link href="/payments" className="font-semibold underline">
+                  Payments
+                </Link>
+              </p>
+            </div>
+          </details>
 
           <div className="mt-6 grid gap-2 sm:grid-cols-3">
             {(Object.keys(paymentLabels) as Array<keyof typeof paymentLabels>).map((key) => (
@@ -141,8 +244,8 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
 
           <p className="mt-4 text-xs text-ink/45">
-            M-Pesa Paybill {storeConfig.payments.paybill} · A/C{" "}
-            {storeConfig.payments.bankAccount} · WhatsApp / Call {storeConfig.whatsappNumber}
+            M-Pesa Paybill {business.payments.paybill} · A/C {business.payments.accountNumber} ·
+            WhatsApp / Call {business.phone}
           </p>
 
           <div className="mt-8 rounded-xl bg-white p-5 ring-1 ring-ink/8">

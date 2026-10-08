@@ -40,6 +40,12 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
 
         <nav className="hidden items-center gap-1 md:flex">
           <Link
+            href="/faq"
+            className="rounded-md px-2.5 py-2 text-sm text-white/90 hover:bg-white/10"
+          >
+            Help
+          </Link>
+          <Link
             href="/account"
             className="rounded-md px-2.5 py-2 text-sm text-white/90 hover:bg-white/10"
           >
