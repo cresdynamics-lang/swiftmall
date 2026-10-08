@@ -9,8 +9,8 @@ import {
 } from "@/components/home/CampaignHero";
 import { DepartmentTiles } from "@/components/home/DepartmentTiles";
 
-/** Viewport minus top strip + navbar + market nav (~8.5rem) */
-const DESKTOP_HERO_H = "lg:h-[calc(100dvh-8.5rem)]";
+/** Full viewport under top strip + navbar + large category strip */
+const DESKTOP_HERO_H = "lg:h-[calc(100dvh-9.5rem)]";
 
 export function MarketHeroRow({ slides }: { slides: CampaignSlide[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -29,46 +29,26 @@ export function MarketHeroRow({ slides }: { slides: CampaignSlide[] }) {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-4">
-        <div
-          className={`lg:grid lg:grid-cols-[240px_minmax(0,1fr)_280px] lg:items-stretch lg:gap-3 ${DESKTOP_HERO_H}`}
-        >
-          <div className="hidden h-full min-h-0 lg:block">
-            <CategorySidebar className="h-full" />
-          </div>
-
-          <div className="min-h-0 min-w-0 lg:h-full">
-            <CampaignHero slides={slides} onIndexChange={setActiveIndex} />
-          </div>
-
-          <div className="mt-3 hidden min-h-0 lg:mt-0 lg:block lg:h-full">
-            <HeroOfferCards products={offers} />
-          </div>
+      {/* Full-width hero — no sidebar, no separate offer column */}
+      <div className={`w-full px-3 pt-3 sm:px-4 lg:px-6 ${DESKTOP_HERO_H}`}>
+        <div className="h-full min-h-0 w-full">
+          <CampaignHero slides={slides} onIndexChange={setActiveIndex} />
         </div>
+      </div>
 
-        {/* Tablet offers */}
-        <div className="mt-3 hidden gap-3 md:grid md:grid-cols-2 lg:hidden">
+      {/* Phone offers only — tablet/desktop cards live inside the carousel */}
+      <div className="mt-3 md:hidden">
+        <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-ink/45">
+          Offers
+        </p>
+        <div className="flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:thin] snap-x">
           {offers.map((p) => (
-            <div key={p.id} className="h-[132px]">
-              <HeroOfferCards products={[p]} />
+            <div key={p.id} className="w-[82%] shrink-0 snap-start">
+              <div className="h-[128px]">
+                <HeroOfferCards products={[p]} />
+              </div>
             </div>
           ))}
-        </div>
-
-        {/* Phone offers */}
-        <div className="mt-3 md:hidden">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/45">
-            Offers
-          </p>
-          <div className="-mx-3 flex gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:thin] snap-x">
-            {offers.map((p) => (
-              <div key={p.id} className="w-[82%] shrink-0 snap-start">
-                <div className="h-[128px]">
-                  <HeroOfferCards products={[p]} />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 

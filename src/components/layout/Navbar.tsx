@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSaved } from "@/context/SavedContext";
-import { QUICK_SEARCH_LINKS } from "@/lib/hero-slides";
 import { Logo } from "./Logo";
 import { SearchBox } from "./SearchBox";
 
@@ -31,19 +30,12 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-50 bg-ink text-white shadow-md">
-      <div className="relative mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-2.5">
+      <div className="relative mx-auto flex max-w-[1600px] items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-2.5 lg:px-6">
         <Logo className="max-w-[120px] shrink-0 sm:max-w-[160px] lg:max-w-none" />
 
-        {/* Desktop / tablet search */}
-        <div className="hidden min-w-0 flex-1 flex-col gap-1 md:flex">
-          <SearchBox className="min-w-0 w-full" />
-          <div className="hidden flex-wrap gap-x-3 gap-y-0.5 px-0.5 text-[11px] text-white/55 lg:flex">
-            {QUICK_SEARCH_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-brand">
-                {l.label}
-              </Link>
-            ))}
-          </div>
+        {/* Desktop / tablet: narrow search */}
+        <div className="ml-auto hidden w-full max-w-[200px] shrink-0 sm:max-w-[240px] md:block lg:max-w-[260px]">
+          <SearchBox className="w-full" />
         </div>
 
         <nav className="hidden items-center gap-1 md:flex">

@@ -174,8 +174,8 @@ export function CampaignHero({
         Mobile: content-driven height. Tablet: aspect canvas.
         Desktop: fill remaining viewport (parent sets height).
       */}
-      <div className="relative h-full overflow-hidden rounded-[14px] md:min-h-[340px] md:aspect-[16/7] lg:aspect-auto lg:min-h-0">
-        {/* Mobile height sizer — mirrors active slide copy so the box grows with content */}
+      <div className="relative h-full min-h-[280px] overflow-hidden rounded-[14px] md:min-h-[380px] lg:min-h-0 lg:rounded-2xl">
+        {/* Mobile height sizer */}
         <div
           aria-hidden
           className="invisible pointer-events-none p-4 md:hidden"
@@ -195,6 +195,7 @@ export function CampaignHero({
         {safe.map((slide, i) => {
           const on = i === index;
           const t = THEME[slide.theme];
+          const offerProducts = slide.products.slice(0, 2);
           return (
             <article
               key={slide.id}
@@ -208,12 +209,12 @@ export function CampaignHero({
               }}
             >
               <SlideBackdrop slide={slide} active={on && showMotion} />
-              <div className="relative z-10 flex h-full flex-col justify-center gap-3 p-4 sm:p-5 md:flex-row md:items-center md:justify-between md:gap-4 md:px-12 lg:gap-5 lg:px-14 lg:py-8">
-                <div className="max-w-md shrink-0 md:max-w-[46%] lg:max-w-md">
-                  <p className={`text-[10px] font-semibold tracking-[0.2em] ${t.accent}`}>
+              <div className="relative z-10 flex h-full flex-col justify-center gap-4 p-4 sm:p-6 md:flex-row md:items-stretch md:justify-between md:gap-6 md:px-10 md:py-8 lg:gap-10 lg:px-14 lg:py-10 xl:px-16">
+                <div className="flex max-w-xl shrink-0 flex-col justify-center md:max-w-[48%] lg:max-w-[42%]">
+                  <p className={`text-[10px] font-semibold tracking-[0.2em] lg:text-xs ${t.accent}`}>
                     {slide.eyebrow}
                   </p>
-                  <h2 className="mt-1.5 font-display text-[1.55rem] font-bold leading-[1.08] sm:text-[1.85rem] md:text-[2rem] lg:text-[2.75rem] xl:text-[3.1rem]">
+                  <h2 className="mt-1.5 font-display text-[1.55rem] font-bold leading-[1.08] sm:text-[1.85rem] md:text-[2.2rem] lg:text-[3rem] xl:text-[3.4rem]">
                     <span className={showMotion && on ? "hero-rise" : ""}>{slide.headline}</span>
                     <br />
                     <span
@@ -234,29 +235,21 @@ export function CampaignHero({
                   <div className={showMotion && on ? "hero-fade hero-fade-delay" : ""}>
                     <Link
                       href={slide.ctaHref}
-                      className={`mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold sm:w-fit ${t.btn}`}
+                      className={`mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold sm:w-fit lg:min-h-12 lg:px-6 lg:text-base ${t.btn}`}
                     >
                       {slide.ctaLabel}
                     </Link>
                   </div>
                 </div>
 
-                {slide.products.length > 0 ? (
+                {/* Offer cards live inside the carousel (tablet+) */}
+                {offerProducts.length > 0 ? (
                   <div
-                    className={`hidden flex-wrap items-end justify-end gap-2 md:flex md:max-w-[48%] lg:max-w-[55%] ${
+                    className={`hidden min-h-0 w-full max-w-md flex-1 md:flex md:max-w-[44%] lg:max-w-[420px] ${
                       showMotion && on ? "hero-tiles-in" : ""
                     }`}
                   >
-                    {slide.products.map((p, pi) => (
-                      <ProductTile
-                        key={p.id}
-                        product={p}
-                        theme={slide.theme}
-                        rotate={pi === 0 ? -3 : pi === 1 ? 2.5 : -1.5}
-                        delay={pi * 70}
-                        animate={showMotion && on}
-                      />
-                    ))}
+                    <HeroOfferCards products={offerProducts} />
                   </div>
                 ) : null}
               </div>
@@ -311,8 +304,8 @@ function SlideBackdrop({
         <div
           className={`absolute inset-y-0 right-0 ${
             slide.backgroundShape === "circle"
-              ? "right-[4%] top-1/2 hidden h-[55%] w-[55%] max-w-[300px] -translate-y-1/2 overflow-hidden rounded-full md:block"
-              : "hidden w-[50%] md:block lg:w-[55%]"
+              ? "right-[2%] top-1/2 hidden h-[70%] w-[58%] max-w-[520px] -translate-y-1/2 overflow-hidden rounded-full md:block"
+              : "hidden w-[58%] md:block lg:w-[62%]"
           }`}
           style={
             active && slide.backgroundShape === "side"
@@ -368,67 +361,17 @@ function SlideBackdrop({
   );
 }
 
-function ProductTile({
-  product,
-  theme,
-  rotate,
-  animate,
-}: {
-  product: CampaignProduct;
-  theme: HeroTheme;
-  rotate: number;
-  delay: number;
-  animate: boolean;
-}) {
-  const t = THEME[theme];
-  const pct = discountPercent(product.price, product.oldPrice);
-  return (
-    <Link
-      href={`/product/${product.slug}`}
-      className={`relative w-[110px] rounded-xl bg-white p-2 shadow-lg lg:w-[130px] ${
-        animate ? "hero-float-tile" : ""
-      }`}
-      style={{ transform: `rotate(${rotate}deg)` }}
-    >
-      <div className="relative aspect-square w-full">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          className="object-contain p-1"
-          sizes="130px"
-        />
-      </div>
-      <span
-        className={`absolute -bottom-2 -right-2 flex h-[56px] w-[56px] flex-col items-center justify-center rounded-full text-center shadow-md ring-2 ring-white lg:h-[76px] lg:w-[76px] ${t.bubble} ${
-          animate ? "hero-bubble-in" : ""
-        }`}
-      >
-        <span className="text-[8px] font-semibold leading-none lg:text-[9px]">KES</span>
-        <span className="text-[10px] font-bold leading-tight lg:text-sm">
-          {product.price.toLocaleString("en-KE")}
-        </span>
-        {product.oldPrice && pct != null ? (
-          <span className="text-[7px] line-through opacity-70 lg:text-[8px]">
-            {formatKes(product.oldPrice).replace("KES ", "")}
-          </span>
-        ) : null}
-      </span>
-    </Link>
-  );
-}
-
-/** Offer cards for the right column — first two products of active slide */
+/** Offer cards inside the carousel (and phone rail) */
 export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
+    <div className="flex h-full min-h-0 w-full flex-col gap-3">
       {products.slice(0, 2).map((product) => {
         const pct = discountPercent(product.price, product.oldPrice);
         return (
           <Link
             key={product.id}
             href={`/product/${product.slug}`}
-            className="flex h-full min-h-[120px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white ring-1 ring-ink/8 transition hover:shadow-md"
+            className="flex min-h-[120px] flex-1 items-stretch gap-3 overflow-hidden rounded-xl bg-white/95 shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-xl lg:min-h-[140px]"
           >
             <div className="relative w-[40%] shrink-0 self-stretch bg-ink/[0.03] sm:w-[42%]">
               <Image
@@ -436,7 +379,7 @@ export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
                 alt=""
                 fill
                 className="object-contain p-2"
-                sizes="140px"
+                sizes="180px"
               />
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-3">
@@ -445,8 +388,10 @@ export function HeroOfferCards({ products }: { products: CampaignProduct[] }) {
                   -{pct}%
                 </span>
               ) : null}
-              <p className="mt-1 line-clamp-2 text-sm font-semibold text-ink">{product.name}</p>
-              <p className="mt-1 font-display text-base font-bold text-ink">
+              <p className="mt-1 line-clamp-2 text-sm font-semibold text-ink lg:text-base">
+                {product.name}
+              </p>
+              <p className="mt-1 font-display text-base font-bold text-ink lg:text-lg">
                 {formatKes(product.price)}
                 {product.oldPrice && pct != null ? (
                   <span className="ml-1.5 text-xs font-normal text-ink/40 line-through">
