@@ -193,7 +193,7 @@ export function CampaignHero({
             <br />
             {active.headlineAccent}
           </h2>
-          <p className="mt-3 inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold">
+          <p className="mt-3 inline-flex w-fit max-w-[14rem] rounded-full border px-3 py-1.5 text-xs font-semibold leading-snug">
             {active.tagline}
           </p>
           <div className="mt-4 h-12 w-full rounded-md" />
@@ -232,7 +232,7 @@ export function CampaignHero({
                     </span>
                   </h2>
                   <p
-                    className={`mt-3 inline-flex max-w-full rounded-full border px-3 py-1.5 text-xs font-semibold sm:text-sm ${t.pill} ${
+                    className={`mt-3 inline-flex w-fit max-w-[13.5rem] rounded-full border px-3 py-1.5 text-left text-[11px] font-semibold leading-snug sm:max-w-[15rem] sm:text-xs md:max-w-[16rem] ${t.pill} ${
                       showMotion && on ? "hero-fade" : ""
                     }`}
                   >

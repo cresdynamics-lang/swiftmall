@@ -21,13 +21,13 @@ export function HeroFlashPanel({
 
   return (
     <aside
-      className={`flex h-full min-h-0 flex-col gap-3 overflow-hidden bg-brand p-3 text-ink sm:p-4 ${
+      className={`flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden bg-brand p-3 text-ink sm:p-4 ${
         flush ? "" : "rounded-[14px] lg:rounded-2xl"
       }`}
       aria-label="Flash sale offers"
     >
       <FlashCountdown endsAt={flashEndsAt} compact variant="onYellow" />
-      <div className="min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 flex-col">
         <HeroOfferCards products={products.slice(0, 2)} />
       </div>
     </aside>

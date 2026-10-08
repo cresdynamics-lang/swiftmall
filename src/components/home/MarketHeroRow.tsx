@@ -61,19 +61,23 @@ export function MarketHeroRow({
   return (
     <>
       <div className={`w-full px-3 pt-3 sm:px-4 lg:px-6 ${DESKTOP_HERO_H}`}>
-        {/* Carousel + flash with a slim gutter between the two panels */}
-        <div className="flex h-full min-h-0 w-full flex-col gap-2.5 md:flex-row md:gap-3">
-          <div className="min-h-[260px] min-w-0 flex-1 overflow-hidden rounded-[14px] md:min-h-[380px] lg:min-h-0 lg:rounded-2xl">
-            <CampaignHero slides={slides} flush />
+        {/* Carousel + flash: same row height on md+, slim gutter */}
+        <div className="flex h-full min-h-0 w-full flex-col gap-2.5 md:flex-row md:items-stretch md:gap-3">
+          <div className="flex min-h-[260px] min-w-0 flex-1 flex-col overflow-hidden rounded-[14px] md:min-h-[380px] lg:min-h-0 lg:rounded-2xl">
+            <div className="min-h-0 flex-1">
+              <CampaignHero slides={slides} flush />
+            </div>
           </div>
 
           {flashProducts.length > 0 ? (
-            <div className="w-full shrink-0 overflow-hidden rounded-[14px] md:w-[min(40%,380px)] md:min-h-[380px] lg:w-[min(34%,400px)] lg:min-h-0 lg:rounded-2xl">
-              <HeroFlashPanel
-                products={flashProducts}
-                flashEndsAt={flashEndsAt}
-                flush
-              />
+            <div className="flex w-full shrink-0 flex-col overflow-hidden rounded-[14px] md:w-[min(40%,380px)] md:min-h-[380px] lg:w-[min(34%,400px)] lg:min-h-0 lg:rounded-2xl">
+              <div className="min-h-0 flex-1">
+                <HeroFlashPanel
+                  products={flashProducts}
+                  flashEndsAt={flashEndsAt}
+                  flush
+                />
+              </div>
             </div>
           ) : null}
         </div>

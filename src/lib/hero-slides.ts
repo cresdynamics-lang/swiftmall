@@ -73,7 +73,7 @@ export const HERO_SLIDES: HeroSlideDef[] = [
     eyebrow: "FASHION",
     headline: "Dress the part.",
     headlineAccent: "Pay on delivery.",
-    tagline: "Men's and women's shoes, bags and more",
+    tagline: "Shoes, bags and more",
     ctaLabel: "Shop Fashion →",
     ctaHref: "/category/fashion",
     background: "/hero/fashion-1280.jpg",
