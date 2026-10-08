@@ -57,8 +57,8 @@ export function ProductCard({
 
   const btn =
     compact
-      ? "rounded px-1 py-1.5 text-[10px] font-semibold leading-tight"
-      : "rounded-md px-2 py-2 text-xs font-semibold sm:text-sm";
+      ? "rounded px-0.5 py-1.5 text-[8px] font-semibold leading-none whitespace-nowrap"
+      : "rounded-md px-1 py-2 text-[10px] font-semibold leading-none whitespace-nowrap sm:px-2 sm:text-xs";
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-lg bg-white ring-1 ring-ink/8 transition hover:-translate-y-0.5 hover:shadow-md">
