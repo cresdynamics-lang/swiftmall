@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
 import { useSaved } from "@/context/SavedContext";
 
@@ -21,7 +21,7 @@ export default function SavedPage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className={`mt-6 ${PRODUCT_GRID_CLASS}`}>
           {items.map((p) => (
             <ProductCard key={p!.id} product={p!} />
           ))}

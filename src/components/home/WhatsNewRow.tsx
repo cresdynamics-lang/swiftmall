@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
 
 export function WhatsNewRow() {
@@ -17,14 +17,9 @@ export function WhatsNewRow() {
           See all →
         </Link>
       </div>
-      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:thin] snap-x snap-mandatory">
+      <div className={PRODUCT_GRID_CLASS}>
         {items.map((p) => (
-          <div
-            key={p.id}
-            className="w-[46%] shrink-0 snap-start sm:w-[31%] md:w-[23%] lg:w-[18%]"
-          >
-            <ProductCard product={p} />
-          </div>
+          <ProductCard key={p.id} product={p} />
         ))}
       </div>
     </section>

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
 import type { Category } from "@/lib/categories";
 
-/** Two rows on every breakpoint: 2×2 / 3×2 / 4×2 */
-const MAX_ITEMS = 8;
+/** Two rows on desktop (6×2); three columns on small screens */
+const MAX_ITEMS = 12;
 
 export function CategoryRow({ category }: { category: Category }) {
   const { byCategory } = useProducts();
@@ -56,10 +56,10 @@ export function CategoryRow({ category }: { category: Category }) {
       {items.length === 0 ? (
         <p className="py-8 text-center text-sm text-ink/50">Products coming soon.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+        <div className={PRODUCT_GRID_CLASS}>
+            {items.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
         </div>
       )}
     </section>

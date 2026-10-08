@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useViewed } from "@/context/ViewedContext";
 import { storeConfig, whatsappHref } from "@/lib/store-config";
 import type { Category } from "@/lib/categories";
@@ -58,7 +58,7 @@ export function ProductRail({
           </Link>
         ) : null}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className={PRODUCT_GRID_CLASS}>
         {products.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}

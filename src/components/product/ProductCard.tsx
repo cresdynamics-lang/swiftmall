@@ -14,6 +14,10 @@ import {
 } from "@/lib/format";
 import type { Product } from "@/lib/product-types";
 
+/** Storefront product grids: 3 across on phones, 6 on desktop. */
+export const PRODUCT_GRID_CLASS =
+  "grid grid-cols-3 gap-2 sm:gap-2.5 lg:grid-cols-6 lg:gap-3";
+
 export function ProductCard({
   product,
   variant = "default",
@@ -69,7 +73,7 @@ export function ProductCard({
             alt={product.name}
             fill
             className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.02] sm:p-2"
-            sizes="(max-width: 640px) 46vw, (max-width: 1024px) 28vw, 23vw"
+            sizes="(max-width: 1024px) 33vw, 16vw"
           />
         </Link>
         {discount != null ? (

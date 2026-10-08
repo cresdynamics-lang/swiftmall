@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { getStoreCategory } from "@/lib/categories-db";
 import { getProductsByCategory } from "@/lib/products";
 
@@ -77,7 +77,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           No products in this view yet.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className={PRODUCT_GRID_CLASS}>
           {items.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
 
 function DealsContent() {
@@ -27,7 +27,7 @@ function DealsContent() {
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
       <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{title}</h1>
       <p className="mt-1 text-sm text-ink/55">{blurb}</p>
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className={`mt-6 ${PRODUCT_GRID_CLASS}`}>
         {deals.map((p) => (
           <ProductCard
             key={p.id}

@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ProductCard } from "@/components/product/ProductCard";
+import { useEffect, useMemo, useState } from "react";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import {
@@ -48,7 +48,6 @@ function endsLabel(endsAt: string | null): string {
 export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
   const { products } = useProducts();
   const clock = useRealCountdown(flashEndsAt);
-  const railRef = useRef<HTMLDivElement>(null);
 
   const deals = useMemo(() => {
     const marked = products.filter((p) => p.flashDeal && p.live !== false);
@@ -87,14 +86,6 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
 
   if (deals.length === 0) return null;
 
-  function scrollRail(dir: -1 | 1) {
-    const el = railRef.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-flash-card]");
-    const w = card?.offsetWidth ?? 180;
-    el.scrollBy({ left: dir * (w + 12), behavior: "smooth" });
-  }
-
   return (
     <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
       <div className="rounded-[18px] bg-ink px-3 py-4 text-white sm:px-5 sm:py-5">
@@ -113,42 +104,19 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
               Shop all →
             </Link>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label="Scroll flash deals left"
-              onClick={() => scrollRail(-1)}
-              className="hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:flex"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              aria-label="Scroll flash deals right"
-              onClick={() => scrollRail(1)}
-              className="hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 sm:flex"
-            >
-              ›
-            </button>
-          </div>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_380px]">
-          <div
-            ref={railRef}
-            className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:thin] snap-x snap-mandatory"
-          >
+        <div className="mt-4 space-y-4">
+          {feature ? (
+            <div className="mx-auto max-w-md lg:ml-auto lg:mr-0 lg:max-w-sm">
+              <DealOfTheHour product={feature} />
+            </div>
+          ) : null}
+          <div className={PRODUCT_GRID_CLASS}>
             {rail.map((p) => (
-              <div
-                key={p.id}
-                data-flash-card
-                className="w-[158px] shrink-0 snap-start sm:w-[180px] lg:w-[200px]"
-              >
-                <ProductCard product={p} variant="flash" />
-              </div>
+              <ProductCard key={p.id} product={p} variant="flash" />
             ))}
           </div>
-          {feature ? <DealOfTheHour product={feature} /> : null}
         </div>
       </div>
     </section>

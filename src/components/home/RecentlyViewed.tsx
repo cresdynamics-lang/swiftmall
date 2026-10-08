@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useViewed } from "@/context/ViewedContext";
 
 export function RecentlyViewed() {
@@ -24,8 +24,8 @@ export function RecentlyViewed() {
           Clear
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        {items.slice(0, 4).map((p) => (
+      <div className={PRODUCT_GRID_CLASS}>
+        {items.slice(0, 12).map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
       </div>

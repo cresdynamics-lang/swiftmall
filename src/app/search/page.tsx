@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { ProductCard } from "@/components/product/ProductCard";
+import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
 
 function SearchResults() {
@@ -17,7 +17,7 @@ function SearchResults() {
         {q ? `Results for "${q}"` : "Search"}
       </h1>
       <p className="mt-1 text-sm text-ink/55">{results.length} products</p>
-      <div className="mt-6 grid grid-cols-2 gap-3">
+      <div className={`mt-6 ${PRODUCT_GRID_CLASS}`}>
         {results.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
