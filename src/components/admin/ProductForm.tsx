@@ -49,7 +49,6 @@ export function ProductForm({
       ? (product?.sizes ?? []).join(", ")
       : "",
   );
-  const [imagePath, setImagePath] = useState(product?.images?.[0] ?? "");
   const [previewUrl, setPreviewUrl] = useState(product?.images?.[0] ?? "");
 
   const priceNum = Number(price) || 0;
@@ -386,20 +385,9 @@ export function ProductForm({
             />
           </Field>
           <p className="text-xs text-ink/50">
-            Upload JPG / PNG / WebP (max 5MB). Or keep an existing path below.
+            Upload JPG / PNG / WebP (max 5MB).
+            {product?.images?.[0] ? " Leave empty to keep the current photo." : ""}
           </p>
-          <Field label="Image path (optional override)">
-            <input
-              name="image"
-              value={imagePath}
-              onChange={(e) => {
-                setImagePath(e.target.value);
-                if (e.target.value) setPreviewUrl(e.target.value);
-              }}
-              className={fieldClass}
-              placeholder="/products/your-file.jpg"
-            />
-          </Field>
           {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -408,7 +396,7 @@ export function ProductForm({
               className="mt-2 h-28 w-28 rounded-md object-contain ring-1 ring-ink/10"
             />
           ) : (
-            <p className="text-xs text-amber-800">No photo yet — upload before saving a new product.</p>
+            <p className="text-xs text-amber-800">No photo yet — upload before saving.</p>
           )}
         </div>
 

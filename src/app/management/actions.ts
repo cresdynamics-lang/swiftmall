@@ -81,7 +81,6 @@ export async function saveProduct(formData: FormData) {
   const oldPrice = oldPriceRaw ? Number(oldPriceRaw) : null;
   const stock = Number(formData.get("stock") ?? 0);
   const lowStockAt = Number(formData.get("lowStockAt") ?? 3);
-  const imagePath = String(formData.get("image") ?? "").trim();
   const flashDeal = formData.get("flashDeal") === "on";
   const featured = formData.get("featured") === "on";
   const live = formData.get("live") === "on";
@@ -112,14 +111,10 @@ export async function saveProduct(formData: FormData) {
     ? ((await prisma.product.findUnique({ where: { id }, select: { images: true } }))
         ?.images ?? [])
     : [];
-  const images = uploaded
-    ? [uploaded]
-    : imagePath
-      ? [imagePath]
-      : existingImages;
+  const images = uploaded ? [uploaded] : existingImages;
 
   if (!images.length) {
-    throw new Error("Add a product photo (upload or path) before saving");
+    throw new Error("Upload a product photo before saving");
   }
 
   const data = {
@@ -262,33 +257,38 @@ export async function publishBanner(formData: FormData) {
 
   if (!headline) throw new Error("Headline required");
 
+  const { saveHeroImageFile } = await import("@/lib/hero-image");
+  const uploaded = await saveHeroImageFile(
+    formData.get("imageFile") instanceof File
+      ? (formData.get("imageFile") as File)
+      : null,
+  );
+
+  const existing = id
+    ? await prisma.homepageBanner.findUnique({
+        where: { id },
+        select: { backgroundImage: true },
+      })
+    : null;
+  const backgroundImage = uploaded ?? existing?.backgroundImage ?? null;
+
+  const data = {
+    headline,
+    subheadline,
+    copy,
+    ctaLabel,
+    backgroundImage,
+    categoryId,
+    tile1ProductId,
+    tile2ProductId,
+    active: true,
+  };
+
   if (id) {
-    await prisma.homepageBanner.update({
-      where: { id },
-      data: {
-        headline,
-        subheadline,
-        copy,
-        ctaLabel,
-        categoryId,
-        tile1ProductId,
-        tile2ProductId,
-        active: true,
-      },
-    });
+    await prisma.homepageBanner.update({ where: { id }, data });
   } else {
     await prisma.homepageBanner.create({
-      data: {
-        headline,
-        subheadline,
-        copy,
-        ctaLabel,
-        categoryId,
-        tile1ProductId,
-        tile2ProductId,
-        active: true,
-        sortOrder: 0,
-      },
+      data: { ...data, sortOrder: 0 },
     });
   }
 

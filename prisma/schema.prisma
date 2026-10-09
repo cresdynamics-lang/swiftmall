@@ -167,21 +167,23 @@ model StoreSettings {
 }
 
 model HomepageBanner {
-  id             String    @id @default(cuid())
-  headline       String
-  subheadline    String    @default("")
-  copy           String    @default("")
-  ctaLabel       String    @default("Shop now →")
-  categoryId     String?
-  category       Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  tile1ProductId String?
-  tile1Product   Product?  @relation("BannerTile1", fields: [tile1ProductId], references: [id], onDelete: SetNull)
-  tile2ProductId String?
-  tile2Product   Product?  @relation("BannerTile2", fields: [tile2ProductId], references: [id], onDelete: SetNull)
-  active         Boolean   @default(true)
-  sortOrder      Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  headline        String
+  subheadline     String    @default("")
+  copy            String    @default("")
+  ctaLabel        String    @default("Shop now →")
+  /** Compressed hero background path under /public/hero/uploads */
+  backgroundImage String?
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tile1ProductId  String?
+  tile1Product    Product?  @relation("BannerTile1", fields: [tile1ProductId], references: [id], onDelete: SetNull)
+  tile2ProductId  String?
+  tile2Product    Product?  @relation("BannerTile2", fields: [tile2ProductId], references: [id], onDelete: SetNull)
+  active          Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model OrderCounter {

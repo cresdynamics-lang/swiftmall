@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/app/management/actions";
 import { prisma } from "@/lib/db";
 import { formatKes } from "@/lib/format";
+import { REPORT_PERIODS, rangeForPeriod } from "@/lib/report-periods";
 
 export default async function AdminReportsPage() {
   await requireAdmin();
@@ -23,6 +24,20 @@ export default async function AdminReportsPage() {
   ]);
 
   const totalSales = orders.reduce((s, o) => s + o.total, 0);
+
+  const periodCounts = await Promise.all(
+    REPORT_PERIODS.map(async (p) => {
+      const { from, to } = rangeForPeriod(p.id);
+      const count = await prisma.order.count({
+        where: { createdAt: { gte: from, lte: to } },
+      });
+      const sum = await prisma.order.aggregate({
+        where: { createdAt: { gte: from, lte: to } },
+        _sum: { total: true },
+      });
+      return { ...p, count, sales: sum._sum.total ?? 0 };
+    }),
+  );
 
   return (
     <main className="px-4 py-6 sm:px-6 lg:px-8">
@@ -74,6 +89,28 @@ export default async function AdminReportsPage() {
               <li className="py-2 text-sm text-ink/45">No low-stock products.</li>
             ) : null}
           </ul>
+        </div>
+
+        <div className="rounded-xl bg-white p-5 ring-1 ring-ink/8 lg:col-span-3">
+          <h2 className="font-display text-lg font-bold">Export report</h2>
+          <p className="mt-1 text-sm text-ink/55">
+            Download a CSV of orders, county totals and line items for the selected period.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {periodCounts.map((p) => (
+              <a
+                key={p.id}
+                href={`/management/reports/export?period=${p.id}`}
+                className="rounded-lg border border-ink/10 bg-ink/[0.02] p-4 transition hover:border-brand hover:bg-brand/10"
+              >
+                <p className="font-semibold text-ink">{p.label}</p>
+                <p className="mt-1 text-xs text-ink/50">
+                  {p.count} orders · {formatKes(p.sales)}
+                </p>
+                <p className="mt-3 text-sm font-semibold text-ink underline">Download CSV</p>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </main>

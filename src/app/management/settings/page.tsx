@@ -82,12 +82,8 @@ export default async function AdminSettingsPage() {
         <h2 className="font-display text-lg font-bold">Staff roles</h2>
         <ul className="mt-3 space-y-2 text-sm">
           <li className="flex justify-between">
-            <span>Owner</span>
-            <span className="text-ink/50">Full access · sales · settings</span>
-          </li>
-          <li className="flex justify-between">
-            <span>Packer</span>
-            <span className="text-ink/50">Orders and slips only (coming next)</span>
+            <span>Martin</span>
+            <span className="text-ink/50">Owner · full access · sales · settings</span>
           </li>
         </ul>
         <p className="mt-4 text-xs text-ink/45">

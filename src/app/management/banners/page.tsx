@@ -1,4 +1,5 @@
 import { publishBanner, requireAdmin } from "@/app/management/actions";
+import { BannerHeroImageField } from "@/components/admin/BannerHeroImageField";
 import { listAllBanners } from "@/lib/banners";
 import { prisma } from "@/lib/db";
 
@@ -20,12 +21,14 @@ export default async function AdminBannersPage() {
     <main className="px-4 py-6 sm:px-6 lg:px-8">
       <h1 className="font-display text-2xl font-bold">Homepage banners</h1>
       <p className="mt-1 text-sm text-ink/55">
-        Hero headline, department and the two offer tiles. Published banners drive the storefront.
+        Hero headline, compressed background image, department and offer tiles. The image is
+        applied to that department&apos;s homepage carousel slide.
       </p>
 
       <form action={publishBanner} className="mt-6 max-w-lg space-y-4 rounded-xl bg-white p-5 ring-1 ring-ink/8">
         {primary?.id ? <input type="hidden" name="id" value={primary.id} /> : null}
         <h2 className="font-display text-lg font-bold">Homepage banner</h2>
+        <BannerHeroImageField currentImage={primary?.backgroundImage} />
         <label className="block text-sm">
           <span className="mb-1 block font-medium">Hero headline</span>
           <input

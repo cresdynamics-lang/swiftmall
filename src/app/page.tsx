@@ -8,6 +8,7 @@ import { HomeTrustStrip } from "@/components/home/HomeTrustStrip";
 import { HowItWorksBlock } from "@/components/home/HowItWorksBlock";
 import { RecentlyViewed } from "@/components/home/RecentlyViewed";
 import { WhatsNewRow } from "@/components/home/WhatsNewRow";
+import { listActiveBanners } from "@/lib/banners";
 import { business } from "@/lib/business";
 import { listStoreCategories } from "@/lib/categories-db";
 import { HERO_SLIDES } from "@/lib/hero-slides";
@@ -31,13 +32,19 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [products, categories, settings] = await Promise.all([
+  const [products, categories, settings, banners] = await Promise.all([
     listLiveProducts(),
     listStoreCategories(),
     getStoreSettings(),
+    listActiveBanners(),
   ]);
   const bySlug = Object.fromEntries(products.map((p) => [p.slug, p]));
   const shopCategories = categories.filter((c) => c.slug !== "others");
+  const bannerByCategory = new Map(
+    banners
+      .filter((b) => b.category?.slug)
+      .map((b) => [b.category!.slug, b] as const),
+  );
 
   const slides: CampaignSlide[] = HERO_SLIDES.map((def) => {
     const picked = new Set<string>();
@@ -66,6 +73,19 @@ export default async function HomePage() {
     }
     if (def.backgroundShape !== "none" && !def.background) {
       console.warn(`[hero] Slide ${def.id} is missing a background photo`);
+    }
+
+    const banner = bannerByCategory.get(def.departmentSlug);
+    const customBg = banner?.backgroundImage?.trim();
+    if (customBg) {
+      return {
+        ...def,
+        background: customBg,
+        imageSrcSet: undefined,
+        backgroundShape: def.backgroundShape === "none" ? "side" : def.backgroundShape,
+        backgroundAlt: banner?.headline || def.backgroundAlt,
+        products: slideProducts,
+      };
     }
 
     return { ...def, products: slideProducts };

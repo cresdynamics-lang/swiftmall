@@ -89,8 +89,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-white/10 px-4 py-4 text-[11px] text-white/55">
-          <p className="font-medium text-white/80">Signed in as Owner</p>
-          <p className="mt-1">Staff roles: Owner · Packer</p>
+          <p className="font-medium text-white/80">Signed in as Martin</p>
+          <p className="mt-1">Owner · full access</p>
           <div className="mt-3 flex flex-col gap-1.5">
             <Link href="/" className="text-white/70 hover:text-brand">
               View store →
