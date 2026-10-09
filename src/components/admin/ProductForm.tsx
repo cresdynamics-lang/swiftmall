@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { saveProduct } from "@/app/management/actions";
+import {
+  CATEGORY_SUB_OPTIONS,
+  needsGender,
+  suggestedSizePreset,
+} from "@/lib/category-subs";
 import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
 import {
   SIZE_PRESET_OPTIONS,
@@ -27,8 +33,15 @@ export function ProductForm({
     product?.oldPrice != null ? String(product.oldPrice) : "",
   );
   const [offerTag, setOfferTag] = useState<OfferTag>(product?.offerTag ?? "NONE");
+  const [categorySlug, setCategorySlug] = useState(
+    product?.category ?? categories[0]?.slug ?? "",
+  );
+  const [subCategory, setSubCategory] = useState(product?.subCategory ?? "");
+  const [gender, setGender] = useState(
+    product?.gender === "mens" ? "MENS" : product?.gender === "womens" ? "WOMENS" : "",
+  );
   const [sizePreset, setSizePreset] = useState<SizePreset>(
-    detectSizePreset(product?.sizes ?? []),
+    product ? detectSizePreset(product.sizes ?? []) : suggestedSizePreset(categorySlug),
   );
   const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
   const [customSizes, setCustomSizes] = useState(
@@ -36,6 +49,8 @@ export function ProductForm({
       ? (product?.sizes ?? []).join(", ")
       : "",
   );
+  const [imagePath, setImagePath] = useState(product?.images?.[0] ?? "");
+  const [previewUrl, setPreviewUrl] = useState(product?.images?.[0] ?? "");
 
   const priceNum = Number(price) || 0;
   const oldNum = oldPrice ? Number(oldPrice) : undefined;
@@ -46,8 +61,9 @@ export function ProductForm({
     offerTag,
   });
 
-  const imageDefault = product?.images?.[0] ?? "/products/p01.jpg";
   const presetMeta = SIZE_PRESET_OPTIONS.find((o) => o.value === sizePreset);
+  const subOptions = CATEGORY_SUB_OPTIONS[categorySlug] ?? [];
+  const fashionGender = needsGender(categorySlug);
 
   const preview = useMemo(
     () => ({
@@ -58,6 +74,16 @@ export function ProductForm({
     [pct, previewTag, oldNum, priceNum],
   );
 
+  function onCategoryChange(next: string) {
+    setCategorySlug(next);
+    setSubCategory("");
+    if (!product) {
+      const suggested = suggestedSizePreset(next);
+      onPresetChange(suggested);
+      if (!needsGender(next)) setGender("");
+    }
+  }
+
   function onPresetChange(next: SizePreset) {
     setSizePreset(next);
     const meta = SIZE_PRESET_OPTIONS.find((o) => o.value === next);
@@ -67,7 +93,6 @@ export function ProductForm({
     } else if (next === "CUSTOM") {
       setSelectedSizes([]);
     } else if (meta?.options.length) {
-      // Default: all sizes on for the chart; admin can uncheck
       setSelectedSizes([...meta.options]);
     }
   }
@@ -76,6 +101,12 @@ export function ProductForm({
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
+  }
+
+  function onFileChange(file: File | null) {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
   }
 
   return (
@@ -122,7 +153,8 @@ export function ProductForm({
             <select
               name="categorySlug"
               required
-              defaultValue={product?.category ?? categories[0]?.slug}
+              value={categorySlug}
+              onChange={(e) => onCategoryChange(e.target.value)}
               className={fieldClass}
             >
               {categories.map((c) => (
@@ -133,11 +165,29 @@ export function ProductForm({
             </select>
           </Field>
           <Field label="Sub-category">
-            <input
-              name="subCategory"
-              defaultValue={product?.subCategory ?? ""}
-              className={fieldClass}
-            />
+            {subOptions.length ? (
+              <select
+                name="subCategory"
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                className={fieldClass}
+              >
+                <option value="">Select…</option>
+                {subOptions.map((o) => (
+                  <option key={o.slug} value={o.label}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                name="subCategory"
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                className={fieldClass}
+                placeholder="Optional"
+              />
+            )}
           </Field>
           <Field label="Brand">
             <input name="brand" defaultValue={product?.brand ?? ""} className={fieldClass} />
@@ -185,6 +235,10 @@ export function ProductForm({
             </select>
           </Field>
         </div>
+        <p className="text-xs text-ink/50">
+          Use offer tag <strong>New</strong> for the What&apos;s New row. Tick Flash deal for the
+          yellow flash panel (also set flash end time in Settings).
+        </p>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Stock">
@@ -205,24 +259,25 @@ export function ProductForm({
               className={fieldClass}
             />
           </Field>
-          <Field label="Gender (fashion)">
+          <Field label={fashionGender ? "Gender * (Men’s / Women’s)" : "Gender"}>
             <select
               name="gender"
-              defaultValue={
-                product?.gender === "mens"
-                  ? "MENS"
-                  : product?.gender === "womens"
-                    ? "WOMENS"
-                    : ""
-              }
+              required={fashionGender}
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
               className={fieldClass}
             >
-              <option value="">None</option>
+              <option value="">{fashionGender ? "Select…" : "None"}</option>
               <option value="MENS">Men&apos;s</option>
               <option value="WOMENS">Women&apos;s</option>
             </select>
           </Field>
         </div>
+        {fashionGender ? (
+          <p className="text-xs text-amber-800">
+            Fashion needs gender so Men&apos;s / Women&apos;s filters and home tabs work.
+          </p>
+        ) : null}
 
         <div className="rounded-lg border border-ink/10 bg-ink/[0.02] p-4">
           <Field label="Size chart">
@@ -238,7 +293,21 @@ export function ProductForm({
               ))}
             </select>
           </Field>
-          <p className="mt-1 text-xs text-ink/50">{presetMeta?.hint}</p>
+          <p className="mt-1 text-xs text-ink/50">
+            {presetMeta?.hint}
+            {categorySlug === "fashion"
+              ? " — use Shoes (EU) for footwear; No sizes for bags/wallets."
+              : null}
+            {categorySlug === "gifts-and-accessories"
+              ? " — use Teddy (cm) for bear heights; No sizes for flowers/jewellery."
+              : null}
+            {categorySlug === "health-and-beauty" ||
+            categorySlug === "electronics" ||
+            categorySlug === "phones-and-accessories" ||
+            categorySlug === "kitchen-and-home"
+              ? " — leave as No sizes for this department."
+              : null}
+          </p>
 
           {sizePreset === "SHOE_EU" || sizePreset === "TEDDY_CM" ? (
             <div className="mt-3">
@@ -306,14 +375,42 @@ export function ProductForm({
           ) : null}
         </div>
 
-        <Field label="Primary image path">
-          <input
-            name="image"
-            defaultValue={imageDefault}
-            className={fieldClass}
-            placeholder="/products/p01.jpg"
-          />
-        </Field>
+        <div className="space-y-3 rounded-lg border border-ink/10 bg-ink/[0.02] p-4">
+          <Field label="Product photo *">
+            <input
+              name="imageFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className={fieldClass}
+              onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+            />
+          </Field>
+          <p className="text-xs text-ink/50">
+            Upload JPG / PNG / WebP (max 5MB). Or keep an existing path below.
+          </p>
+          <Field label="Image path (optional override)">
+            <input
+              name="image"
+              value={imagePath}
+              onChange={(e) => {
+                setImagePath(e.target.value);
+                if (e.target.value) setPreviewUrl(e.target.value);
+              }}
+              className={fieldClass}
+              placeholder="/products/your-file.jpg"
+            />
+          </Field>
+          {previewUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={previewUrl}
+              alt=""
+              className="mt-2 h-28 w-28 rounded-md object-contain ring-1 ring-ink/10"
+            />
+          ) : (
+            <p className="text-xs text-amber-800">No photo yet — upload before saving a new product.</p>
+          )}
+        </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
@@ -339,12 +436,7 @@ export function ProductForm({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            type="submit"
-            className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-ink hover:bg-brand-dark"
-          >
-            Save product
-          </button>
+          <SaveProductButton />
           {product?.slug ? (
             <Link
               href={`/product/${product.slug}`}
@@ -361,6 +453,14 @@ export function ProductForm({
         <p className="text-xs font-bold uppercase tracking-wide text-ink/45">
           Storefront preview
         </p>
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt=""
+            className="mt-3 h-36 w-full rounded-md object-contain bg-ink/[0.03]"
+          />
+        ) : null}
         <p className="mt-3 line-clamp-2 text-sm font-semibold">{name || "Product name"}</p>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="font-display text-xl font-bold">
@@ -404,6 +504,19 @@ export function ProductForm({
 
 const fieldClass =
   "w-full rounded-md border border-ink/15 px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand";
+
+function SaveProductButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-ink hover:bg-brand-dark disabled:cursor-wait disabled:opacity-60"
+    >
+      {pending ? "Saving…" : "Save product"}
+    </button>
+  );
+}
 
 function Field({
   label,

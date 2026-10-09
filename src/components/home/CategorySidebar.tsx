@@ -182,12 +182,12 @@ function MobileSubs({
   const subs =
     category.slug === "fashion"
       ? [
-          { name: "Men's", href: "/category/fashion?g=mens" },
-          { name: "Women's", href: "/category/fashion?g=womens" },
+          { name: "Men's", href: "/category/fashion?gender=mens" },
+          { name: "Women's", href: "/category/fashion?gender=womens" },
         ]
       : (category.children ?? []).map((c) => ({
           name: c.name,
-          href: `/category/${category.slug}`,
+          href: `/category/${category.slug}?sub=${c.slug}`,
         }));
 
   return (
@@ -248,15 +248,15 @@ function Flyout({
   const fashionSubs =
     category.slug === "fashion"
       ? [
-          { name: "Men's", href: "/category/fashion?g=mens" },
-          { name: "Women's", href: "/category/fashion?g=womens" },
+          { name: "Men's", href: "/category/fashion?gender=mens" },
+          { name: "Women's", href: "/category/fashion?gender=womens" },
         ]
       : null;
   const subs =
     fashionSubs ??
     (category.children ?? []).map((c) => ({
       name: c.name,
-      href: `/category/${category.slug}`,
+      href: `/category/${category.slug}?sub=${c.slug}`,
     }));
 
   return (

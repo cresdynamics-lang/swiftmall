@@ -88,7 +88,7 @@ export function ProductsTable({
                   <Link href={`/management/products/${p.id}`} className="flex items-center gap-3">
                     <div className="relative h-10 w-10 overflow-hidden rounded bg-ink/[0.04]">
                       <Image
-                        src={p.images[0] ?? "/products/p01.jpg"}
+                        src={p.images[0] || "/brand/favicon-32.png"}
                         alt=""
                         fill
                         className="object-cover"

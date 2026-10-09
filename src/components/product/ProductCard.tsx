@@ -35,7 +35,7 @@ export function ProductCard({
   const inStock = product.stock > 0;
   const low = isLowStock(product.stock, 5);
   const needsSize = product.sizes.length > 0;
-  const photo = product.images[0] ?? "/products/p01.jpg";
+  const photo = product.images[0] || "/brand/favicon-32.png";
   const compact = variant === "flash";
 
   useEffect(() => {

@@ -81,8 +81,7 @@ export async function saveProduct(formData: FormData) {
   const oldPrice = oldPriceRaw ? Number(oldPriceRaw) : null;
   const stock = Number(formData.get("stock") ?? 0);
   const lowStockAt = Number(formData.get("lowStockAt") ?? 3);
-  const image = String(formData.get("image") ?? "").trim();
-  const images = image ? [image] : [];
+  const imagePath = String(formData.get("image") ?? "").trim();
   const flashDeal = formData.get("flashDeal") === "on";
   const featured = formData.get("featured") === "on";
   const live = formData.get("live") === "on";
@@ -99,55 +98,71 @@ export async function saveProduct(formData: FormData) {
   const category = await prisma.category.findUnique({ where: { slug: categorySlug } });
   if (!category) throw new Error("Category not found");
 
+  if (categorySlug === "fashion" && !gender) {
+    throw new Error("Fashion products need Men's or Women's gender so filters work");
+  }
+
+  const { saveProductImageFile } = await import("@/lib/product-image");
+  const uploaded = await saveProductImageFile(
+    formData.get("imageFile") instanceof File
+      ? (formData.get("imageFile") as File)
+      : null,
+  );
+  const existingImages = id
+    ? ((await prisma.product.findUnique({ where: { id }, select: { images: true } }))
+        ?.images ?? [])
+    : [];
+  const images = uploaded
+    ? [uploaded]
+    : imagePath
+      ? [imagePath]
+      : existingImages;
+
+  if (!images.length) {
+    throw new Error("Add a product photo (upload or path) before saving");
+  }
+
+  const data = {
+    name,
+    slug,
+    description,
+    brand,
+    subCategory,
+    sku,
+    price,
+    oldPrice,
+    stock,
+    lowStockAt,
+    images,
+    flashDeal,
+    featured,
+    live,
+    offerTag,
+    gender,
+    sizes,
+    categoryId: category.id,
+  };
+
   if (id) {
-    await prisma.product.update({
-      where: { id },
-      data: {
-        name,
-        slug,
-        description,
-        brand,
-        subCategory,
-        sku,
-        price,
-        oldPrice,
-        stock,
-        lowStockAt,
-        images,
-        flashDeal,
-        featured,
-        live,
-        offerTag,
-        gender,
-        sizes,
-        categoryId: category.id,
-      },
-    });
+    await prisma.product.update({ where: { id }, data });
   } else {
-    const exists = await prisma.product.findUnique({ where: { slug } });
-    if (exists) slug = `${slug}-${Date.now().toString(36)}`;
-    await prisma.product.create({
-      data: {
-        name,
-        slug,
-        description,
-        brand,
-        subCategory,
-        sku,
-        price,
-        oldPrice,
-        stock,
-        lowStockAt,
-        images,
-        flashDeal,
-        featured,
-        live,
-        offerTag,
-        gender,
-        sizes,
-        categoryId: category.id,
-      },
-    });
+    // Double-submit / retry: update the existing row instead of creating
+    // timestamp-suffixed duplicates with the same name and image.
+    const existing =
+      (await prisma.product.findUnique({ where: { slug } })) ??
+      (await prisma.product.findFirst({
+        where: { name: { equals: name, mode: "insensitive" } },
+      }));
+
+    if (existing) {
+      slug = existing.slug;
+      await prisma.product.update({
+        where: { id: existing.id },
+        data: { ...data, slug: existing.slug },
+      });
+    } else {
+      await prisma.product.create({ data });
+    }
   }
 
   revalidatePath("/");

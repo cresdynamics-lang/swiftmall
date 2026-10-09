@@ -84,7 +84,7 @@ export const HERO_SLIDES: HeroSlideDef[] = [
     productSlugs: [
       "mens-leather-monk-strap-shoes",
       "womens-clear-block-heel-sandals",
-      "womens-watch-and-bracelet-set",
+      "womens-comfort-toe-loop-sandals",
     ],
   },
   {

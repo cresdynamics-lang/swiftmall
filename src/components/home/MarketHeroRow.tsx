@@ -45,7 +45,7 @@ export function MarketHeroRow({
         name: p.name,
         price: p.price,
         oldPrice: p.oldPrice,
-        image: p.images[0] ?? "/products/p01.jpg",
+        image: p.images[0] || "/brand/favicon-32.png",
       }));
     }
     // Fallback: first slide catalogue picks (still fixed, not per-slide)

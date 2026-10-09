@@ -40,17 +40,26 @@ export default async function HomePage() {
   const shopCategories = categories.filter((c) => c.slug !== "others");
 
   const slides: CampaignSlide[] = HERO_SLIDES.map((def) => {
-    const slideProducts = def.productSlugs
+    const picked = new Set<string>();
+    const fromSlugs = def.productSlugs
       .map((slug) => bySlug[slug])
-      .filter(Boolean)
-      .map((p) => ({
-        id: p!.id,
-        slug: p!.slug,
-        name: p!.name,
-        price: p!.price,
-        oldPrice: p!.oldPrice,
-        image: p!.images[0] ?? "/products/p01.jpg",
-      }));
+      .filter(Boolean) as typeof products;
+    for (const p of fromSlugs) picked.add(p.slug);
+
+    // Pad with live products from the same department so new catalogue items show up
+    const fillers = products.filter(
+      (p) => p.category === def.departmentSlug && !picked.has(p.slug),
+    );
+    const combined = [...fromSlugs, ...fillers].slice(0, 3);
+
+    const slideProducts = combined.map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      price: p.price,
+      oldPrice: p.oldPrice,
+      image: p.images[0] || "/brand/favicon-32.png",
+    }));
 
     if (slideProducts.length < 2) {
       console.warn(`[hero] Slide ${def.id} has fewer than 2 products`, def.productSlugs);

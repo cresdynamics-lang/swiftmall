@@ -228,7 +228,7 @@ export async function placeOrder(input: PlaceOrderInput) {
           create: resolved.map((r) => ({
             productId: r.product.id,
             name: r.product.name,
-            image: r.product.images[0] ?? "/products/p01.jpg",
+            image: r.product.images[0] || "/brand/favicon-32.png",
             unitPrice: r.product.price,
             qty: r.qty,
             size: r.size ?? null,

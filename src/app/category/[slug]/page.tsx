@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { getStoreCategory } from "@/lib/categories-db";
+import { CATEGORY_SUB_OPTIONS } from "@/lib/category-subs";
 import { getProductsByCategory } from "@/lib/products";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ gender?: string }>;
+  searchParams: Promise<{ gender?: string; g?: string; sub?: string }>;
 };
 
 export async function generateMetadata({ params }: PageProps) {
@@ -17,13 +18,18 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const { gender: genderParam } = await searchParams;
+  const sp = await searchParams;
   const cat = await getStoreCategory(slug);
   if (!cat) notFound();
 
+  const genderRaw = sp.gender ?? sp.g;
   const gender =
-    genderParam === "mens" || genderParam === "womens" ? genderParam : undefined;
-  const items = await getProductsByCategory(slug, gender);
+    genderRaw === "mens" || genderRaw === "womens" ? genderRaw : undefined;
+  const sub = sp.sub?.trim() || undefined;
+  const items = await getProductsByCategory(slug, gender, sub);
+
+  const isFashion = slug === "fashion";
+  const subOptions = CATEGORY_SUB_OPTIONS[slug] ?? [];
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
@@ -42,34 +48,35 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             {items.length} products · all with cash on delivery
           </p>
         </div>
-        {cat.children && (
+
+        {isFashion ? (
           <div className="flex gap-2">
-            <Link
-              href={`/category/${slug}`}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                !gender ? "bg-brand text-ink" : "bg-white text-ink/70 ring-1 ring-ink/10"
-              }`}
-            >
+            <Chip href={`/category/${slug}`} active={!gender}>
               All
-            </Link>
-            {cat.children.map((c) => {
-              const g = c.slug.includes("mens") ? "mens" : "womens";
-              return (
-                <Link
-                  key={c.slug}
-                  href={`/category/${slug}?gender=${g}`}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                    gender === g
-                      ? "bg-brand text-ink"
-                      : "bg-white text-ink/70 ring-1 ring-ink/10"
-                  }`}
-                >
-                  {c.name}
-                </Link>
-              );
-            })}
+            </Chip>
+            <Chip href={`/category/${slug}?gender=mens`} active={gender === "mens"}>
+              Men&apos;s
+            </Chip>
+            <Chip href={`/category/${slug}?gender=womens`} active={gender === "womens"}>
+              Women&apos;s
+            </Chip>
           </div>
-        )}
+        ) : subOptions.length ? (
+          <div className="flex flex-wrap gap-2">
+            <Chip href={`/category/${slug}`} active={!sub}>
+              All
+            </Chip>
+            {subOptions.map((o) => (
+              <Chip
+                key={o.slug}
+                href={`/category/${slug}?sub=${o.slug}`}
+                active={sub === o.slug}
+              >
+                {o.label}
+              </Chip>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {items.length === 0 ? (
@@ -84,5 +91,26 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         </div>
       )}
     </div>
+  );
+}
+
+function Chip({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+        active ? "bg-brand text-ink" : "bg-white text-ink/70 ring-1 ring-ink/10"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }

@@ -42,6 +42,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 export async function getProductsByCategory(
   categorySlug: string,
   gender?: "mens" | "womens",
+  sub?: string,
 ): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: {
@@ -54,7 +55,12 @@ export async function getProductsByCategory(
     include: { category: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
-  return rows.map(mapProduct);
+  let products = rows.map(mapProduct);
+  if (sub) {
+    const { productMatchesSub } = await import("@/lib/category-subs");
+    products = products.filter((p) => productMatchesSub(p.subCategory, sub));
+  }
+  return products;
 }
 
 export function filterProducts(

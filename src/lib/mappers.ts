@@ -17,7 +17,7 @@ export function mapProduct(row: DbProductWithCategory): Product {
     oldPrice: row.oldPrice ?? undefined,
     stock: row.stock,
     lowStockAt: row.lowStockAt,
-    images: row.images.length ? row.images : ["/products/p01.jpg"],
+    images: row.images.length ? row.images : ["/brand/favicon-32.png"],
     description: row.description,
     flashDeal: row.flashDeal,
     featured: row.featured,
