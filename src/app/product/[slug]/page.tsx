@@ -215,12 +215,17 @@ export default async function ProductPage({ params }: PageProps) {
                 you to confirm before dispatch.
               </p>
               <p>
-                If the item arrives wrong, damaged or faulty, WhatsApp us on {business.whatsapp}{" "}
-                with your order number and a photo.
+                If something is wrong, send a complaint within{" "}
+                {business.returns.reportWithinDays.value} days with photos on WhatsApp{" "}
+                {business.whatsapp} or email {business.returnsEmail}.
               </p>
               <p>
                 <Link href="/delivery" className="font-semibold underline">
                   Delivery
+                </Link>
+                {" · "}
+                <Link href="/returns" className="font-semibold underline">
+                  Returns
                 </Link>
                 {" · "}
                 <Link href="/payments" className="font-semibold underline">

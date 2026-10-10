@@ -59,7 +59,15 @@ const faqs = [
     items: [
       {
         q: "What if the item is wrong or damaged?",
-        a: `Tell the rider if you can, then WhatsApp us on ${business.whatsapp} with your order number and a photo. We will tell you the next step.`,
+        a: `Send a complaint within ${business.returns.reportWithinDays.value} days with pictures on WhatsApp ${business.whatsapp} or email ${business.returnsEmail}. Once validated, we arrange return collection, then refund or exchange as you prefer.`,
+      },
+      {
+        q: "Can I return a correctly delivered item or cancel for change of mind?",
+        a: `Yes, subject to inspection. A ${business.returns.processingFeePercent.value}% order processing fee applies, and shipping fees are non-refundable. See our return policy for full details.`,
+      },
+      {
+        q: "Which items cannot be returned?",
+        a: "Beauty, health and personal care, cosmetics, perfumes, hair extensions, jewellery, innerwear, lingerie, socks, bed sheets, books, underwear, adult toys, groceries, perishables (unless raised at delivery), and items that are used, damaged, altered, or missing serial/UPC numbers.",
       },
     ],
   },

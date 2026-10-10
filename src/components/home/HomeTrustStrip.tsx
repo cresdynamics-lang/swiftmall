@@ -3,7 +3,7 @@ import { business, confirmedValue } from "@/lib/business";
 
 /** Slim strip under the hero — only confirmed promises. */
 export function HomeTrustStrip() {
-  const returnHours = confirmedValue(business.returns.reportWithinHours);
+  const returnDays = confirmedValue(business.returns.reportWithinDays);
 
   const items = [
     {
@@ -21,11 +21,11 @@ export function HomeTrustStrip() {
       line: "We call or WhatsApp before dispatch.",
       href: "/how-to-order",
     },
-    ...(returnHours != null
+    ...(returnDays != null
       ? [
           {
-            title: "Easy swaps",
-            line: `${returnHours} hours to tell us.`,
+            title: "Returns support",
+            line: `${returnDays} days to report an issue.`,
             href: "/returns",
           },
         ]

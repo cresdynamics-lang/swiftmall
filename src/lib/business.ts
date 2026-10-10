@@ -17,6 +17,8 @@ export const business = {
   phone: "0727383847",
   whatsapp: "0727383847",
   email: "orders@swiftmall.co.ke",
+  /** Returns / complaints inbox (from published return policy) */
+  returnsEmail: "ww.swiftmall@gmail.com",
 
   shippingFlatKes: 250,
 
@@ -52,13 +54,35 @@ export const business = {
   },
 
   returns: {
-    reportWithinHours: { value: 48, confirmed: false } satisfies Confirmable<number>,
-    changeOfMind: { value: false, confirmed: false } satisfies Confirmable<boolean>,
+    /** Complaint / return request window after delivery */
+    reportWithinDays: { value: 5, confirmed: true } satisfies Confirmable<number>,
+    /** Kept for older UI that mentioned hours — 5 days */
+    reportWithinHours: { value: 120, confirmed: true } satisfies Confirmable<number>,
+    /** Change-of-mind / correctly delivered returns allowed with processing fee */
+    changeOfMind: { value: true, confirmed: true } satisfies Confirmable<boolean>,
+    processingFeePercent: { value: 10, confirmed: true } satisfies Confirmable<number>,
     nonReturnable: {
-      value: [] as string[],
-      confirmed: false,
+      value: [
+        "Products altered from original condition, or opened without authorised permission",
+        "Products with tampered or missing serial / UPC numbers",
+        "Perishable goods (unless a valid issue is raised at delivery and confirmed by the dispatcher)",
+        "Products damaged due to misuse",
+        "Beauty, health and personal care products",
+        "Jewellery, innerwear, bed sheets, lingerie and socks",
+        "Books",
+        "Underwear",
+        "Adult toys",
+        "Groceries",
+        "Perfumes",
+        "Cosmetics",
+        "Hair extensions",
+      ],
+      confirmed: true,
     } satisfies Confirmable<string[]>,
-    refundMethod: { value: "", confirmed: false } satisfies Confirmable<string>,
+    refundMethod: {
+      value: "Refund or exchange once the returned item is received and inspected, as you prefer",
+      confirmed: true,
+    } satisfies Confirmable<string>,
     refundDays: { value: 0, confirmed: false } satisfies Confirmable<number>,
   },
 
@@ -112,7 +136,7 @@ export const trustPagePublish = {
   about: false,
   howToOrder: true,
   delivery: true,
-  returns: false,
+  returns: true,
   warranty: false,
   payments: true,
   contact: true,
