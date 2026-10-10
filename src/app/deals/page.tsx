@@ -12,7 +12,9 @@ function DealsContent() {
 
   const deals =
     tab === "new"
-      ? products.filter((p) => p.offerTag === "NEW")
+      ? [...products].sort(
+          (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
+        )
       : products.filter(
           (p) => p.flashDeal || (p.oldPrice != null && p.oldPrice > p.price),
         );
@@ -20,7 +22,7 @@ function DealsContent() {
   const title = tab === "new" ? "What's New" : "Flash Sale";
   const blurb =
     tab === "new"
-      ? "Fresh arrivals from the shop catalogue."
+      ? "Newest products uploaded to the shop, latest first."
       : "Flash deals and discounted picks. Prices and savings come from the shop catalogue.";
 
   return (

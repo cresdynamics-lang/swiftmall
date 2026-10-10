@@ -6,7 +6,9 @@ import { useProducts } from "@/context/ProductsContext";
 
 export function WhatsNewRow() {
   const { products } = useProducts();
-  const items = products.filter((p) => p.offerTag === "NEW").slice(0, 12);
+  const items = [...products]
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 12);
   if (!items.length) return null;
 
   return (

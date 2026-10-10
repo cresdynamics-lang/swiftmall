@@ -1,6 +1,6 @@
 import { PrismaClient, OfferTag, Gender } from "@prisma/client";
 import { SHOE_EU_SIZES, TEDDY_CM_SIZES } from "../src/lib/product-sizes";
-import { defaultTeddySizePrices } from "../src/lib/product-price";
+import { defaultShoeSizePrices, defaultTeddySizePrices } from "../src/lib/product-price";
 
 const prisma = new PrismaClient();
 const SHOE_SIZES = [...SHOE_EU_SIZES];
@@ -298,6 +298,7 @@ const products: SeedProduct[] = [
     featured: true,
     offerTag: OfferTag.THIS_WEEK,
     sizes: SHOE_SIZES,
+    sizePrices: defaultShoeSizePrices(4800, SHOE_SIZES),
   },
   {
     slug: "mens-leather-oxford-shoes-brown",
@@ -310,6 +311,7 @@ const products: SeedProduct[] = [
     images: ["/products/p09.jpg"],
     description: "Classic brown leather Oxford shoes for work and occasions.",
     sizes: SHOE_SIZES,
+    sizePrices: defaultShoeSizePrices(4500, SHOE_SIZES),
   },
   {
     slug: "womens-comfort-toe-loop-sandals",
@@ -323,6 +325,7 @@ const products: SeedProduct[] = [
     description: "Black platform toe-loop sandals for everyday comfort.",
     featured: true,
     sizes: SHOE_SIZES,
+    sizePrices: defaultShoeSizePrices(1600, SHOE_SIZES),
   },
   {
     slug: "womens-clear-block-heel-sandals",
@@ -338,6 +341,7 @@ const products: SeedProduct[] = [
     featured: true,
     offerTag: OfferTag.TODAY,
     sizes: SHOE_SIZES,
+    sizePrices: defaultShoeSizePrices(1900, SHOE_SIZES),
   },
   {
     slug: "womens-fluffy-cross-strap-slippers",
@@ -351,6 +355,7 @@ const products: SeedProduct[] = [
     description: "Soft fluffy cross-strap slippers for home and travel.",
     offerTag: OfferTag.NEW,
     sizes: SHOE_SIZES,
+    sizePrices: defaultShoeSizePrices(900, SHOE_SIZES),
   },
   {
     slug: "womens-long-wallet-pom-pom",

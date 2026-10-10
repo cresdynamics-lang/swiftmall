@@ -17,7 +17,11 @@ import {
   detectSizePreset,
   type SizePreset,
 } from "@/lib/product-sizes";
-import { defaultTeddySizePrices, TEDDY_SIZE_PRICES } from "@/lib/product-price";
+import {
+  defaultShoeSizePrices,
+  defaultTeddySizePrices,
+  TEDDY_SIZE_PRICES,
+} from "@/lib/product-price";
 import { extraAngleLabel } from "@/lib/product-angles";
 import {
   MAX_PRODUCT_IMAGES,
@@ -45,7 +49,9 @@ export function ProductForm({
   const [oldPrice, setOldPrice] = useState(
     product?.oldPrice != null ? String(product.oldPrice) : "",
   );
-  const [offerTag, setOfferTag] = useState<OfferTag>(product?.offerTag ?? "NONE");
+  const [offerTag, setOfferTag] = useState<OfferTag>(
+    product?.offerTag ?? (product ? "NONE" : "NEW"),
+  );
   const [categorySlug, setCategorySlug] = useState(
     product?.category ?? categories[0]?.slug ?? "",
   );
@@ -73,10 +79,15 @@ export function ProductForm({
     for (const size of TEDDY_CM_SIZES) {
       if (!out[size] && teddyDefaults[size] != null) out[size] = String(teddyDefaults[size]);
     }
-    const base = product?.price;
-    if (base != null && base > 0) {
-      for (const size of product?.sizes ?? []) {
-        if (!out[size] && SHOE_EU_SIZES.includes(size)) out[size] = String(base);
+    const shoeSizes = (product?.sizes ?? []).filter((s) => SHOE_EU_SIZES.includes(s));
+    const base = product?.price ?? 0;
+    if (shoeSizes.length && base > 0) {
+      const scaled = defaultShoeSizePrices(base, shoeSizes);
+      const flat =
+        shoeSizes.length > 1 &&
+        shoeSizes.every((s) => out[s] === out[shoeSizes[0]]);
+      for (const size of shoeSizes) {
+        if (!out[size] || flat) out[size] = String(scaled[size]);
       }
     }
     return out;
@@ -133,6 +144,19 @@ export function ProductForm({
     }
   }
 
+  function applyShoeScale(sizes: string[], base: number, overwrite = false) {
+    if (base <= 0) return;
+    const scaled = defaultShoeSizePrices(base, sizes);
+    setSizePrices((prev) => {
+      const out = { ...prev };
+      for (const size of sizes) {
+        if (!overwrite && out[size]) continue;
+        if (scaled[size] != null) out[size] = String(scaled[size]);
+      }
+      return out;
+    });
+  }
+
   function seedSizePrices(sizes: string[], fallback?: number) {
     setSizePrices((prev) => {
       const out = { ...prev };
@@ -163,7 +187,7 @@ export function ProductForm({
         if (!price || Number(price) <= 0) setPrice(String(min));
       } else if (next === "SHOE_EU") {
         const base = Number(price) || product?.price || 0;
-        seedSizePrices([...SHOE_EU_SIZES], base);
+        applyShoeScale([...SHOE_EU_SIZES], base, true);
       }
     }
   }
@@ -173,7 +197,8 @@ export function ProductForm({
       const next = prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size];
       if (!prev.includes(size)) {
         const base = Number(price) || product?.price || 0;
-        seedSizePrices([size], base);
+        if (sizePreset === "SHOE_EU") applyShoeScale([size], base);
+        else seedSizePrices([size], base);
       }
       return next;
     });
@@ -182,11 +207,7 @@ export function ProductForm({
   function fillShoePricesFromListing() {
     const base = Number(price) || 0;
     if (base <= 0) return;
-    setSizePrices((prev) => {
-      const out = { ...prev };
-      for (const size of selectedSizes) out[size] = String(base);
-      return out;
-    });
+    applyShoeScale(selectedSizes, base, true);
   }
 
   function onDisplaySelected(file: File | null) {
@@ -467,7 +488,8 @@ export function ProductForm({
                       const all = [...(presetMeta?.options ?? [])];
                       setSelectedSizes(all);
                       const base = Number(price) || product?.price || 0;
-                      seedSizePrices(all, base);
+                      if (sizePreset === "SHOE_EU") applyShoeScale(all, base, true);
+                      else seedSizePrices(all, base);
                     }}
                   >
                     Select all
@@ -521,7 +543,7 @@ export function ProductForm({
                         className="text-xs font-semibold text-ink underline"
                         onClick={fillShoePricesFromListing}
                       >
-                        Fill all with listing price
+                        Scale prices from listing
                       </button>
                     ) : null}
                   </div>

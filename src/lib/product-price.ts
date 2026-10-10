@@ -1,4 +1,4 @@
-import { TEDDY_CM_SIZES } from "@/lib/product-sizes";
+import { SHOE_EU_SIZES, TEDDY_CM_SIZES } from "@/lib/product-sizes";
 import type { Product } from "@/lib/product-types";
 
 /** Anchors from owner: 40 cm → KES 1,200 · 200 cm → KES 10,000 */
@@ -12,6 +12,40 @@ export const TEDDY_SIZE_PRICES: Record<string, number> = {
   "180 cm": 8900,
   "200 cm": 10000,
 };
+
+function euSizeNumber(size: string): number | null {
+  const m = size.trim().match(/^EU\s*(\d+)/i);
+  return m ? Number(m[1]) : null;
+}
+
+function roundKes(n: number): number {
+  if (n >= 2000) return Math.max(100, Math.round(n / 50) * 50);
+  return Math.max(50, Math.round(n / 50) * 50);
+}
+
+/**
+ * Graduated shoe prices around a listing/base (anchored at EU 40).
+ * Smaller kids sizes cost less; larger adult sizes cost more.
+ */
+export function defaultShoeSizePrices(
+  basePrice: number,
+  sizes: string[] = [...SHOE_EU_SIZES],
+): Record<string, number> {
+  const base = Math.max(50, Math.round(basePrice) || 0);
+  if (!base) return {};
+  const out: Record<string, number> = {};
+  for (const size of sizes) {
+    const n = euSizeNumber(size);
+    if (n == null) {
+      out[size] = base;
+      continue;
+    }
+    // ~3% per EU size vs EU 40; clamp so kids stay affordable
+    const factor = Math.min(1.2, Math.max(0.55, 1 + (n - 40) * 0.03));
+    out[size] = roundKes(base * factor);
+  }
+  return out;
+}
 
 export function parseSizePrices(raw: unknown): Record<string, number> | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
@@ -49,6 +83,14 @@ export function defaultTeddySizePrices(
     if (TEDDY_SIZE_PRICES[size] != null) out[size] = TEDDY_SIZE_PRICES[size];
   }
   return out;
+}
+
+/** True when every size uses the same KES (needs a real size scale). */
+export function sizePricesAreFlat(sizePrices: Record<string, number> | undefined): boolean {
+  if (!sizePrices) return true;
+  const values = Object.values(sizePrices);
+  if (values.length < 2) return true;
+  return values.every((v) => v === values[0]);
 }
 
 /** Parse admin fields sizePrice[40 cm]=1200 */

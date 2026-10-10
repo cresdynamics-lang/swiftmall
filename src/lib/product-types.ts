@@ -28,6 +28,8 @@ export type Product = {
   sizes: string[];
   /** When set, checkout uses this price for the chosen size */
   sizePrices?: Record<string, number>;
+  /** ISO timestamp — used for What's New (newest uploads first) */
+  createdAt: string;
 };
 
 export const OFFER_TAG_OPTIONS: { value: OfferTag; label: string }[] = [

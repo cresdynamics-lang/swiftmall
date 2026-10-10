@@ -33,5 +33,6 @@ export function mapProduct(row: DbProductWithCategory): Product {
       : undefined,
     sizes: row.sizes ?? [],
     sizePrices: parseSizePrices(row.sizePrices),
+    createdAt: row.createdAt.toISOString(),
   };
 }
