@@ -8,6 +8,7 @@ import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
 import type { Category } from "@/lib/categories";
 import { discountPercent, formatKes } from "@/lib/format";
+import { fashionGenderFromSlug } from "@/lib/product-angles";
 
 export function AllCategoriesMenu() {
   const categories = useCategories();
@@ -112,11 +113,9 @@ function CategoryPanel({
             <div key={child.slug}>
               <Link
                 href={
-                  child.slug.includes("mens")
-                    ? `/category/${category.slug}?gender=mens`
-                    : child.slug.includes("womens")
-                      ? `/category/${category.slug}?gender=womens`
-                      : `/category/${category.slug}?sub=${child.slug}`
+                  fashionGenderFromSlug(child.slug)
+                    ? `/category/${category.slug}?gender=${fashionGenderFromSlug(child.slug)}`
+                    : `/category/${category.slug}?sub=${child.slug}`
                 }
                 onClick={onNavigate}
                 className="text-sm font-semibold text-ink hover:text-brand-dark"
@@ -129,7 +128,7 @@ function CategoryPanel({
                     <li key={leaf.slug}>
                       <Link
                         href={`/category/${category.slug}?gender=${
-                          child.slug.includes("mens") ? "mens" : "womens"
+                          fashionGenderFromSlug(child.slug) ?? "mens"
                         }`}
                         onClick={onNavigate}
                         className="text-xs text-ink/60 hover:text-ink"

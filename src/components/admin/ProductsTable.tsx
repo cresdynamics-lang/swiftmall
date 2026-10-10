@@ -100,7 +100,13 @@ export function ProductsTable({
                 </td>
                 <td className="px-3 py-3 text-ink/70">
                   {p.categoryName ?? p.category}
-                  {p.gender === "mens" ? " › Men" : p.gender === "womens" ? " › Women" : ""}
+                  {p.gender === "mens"
+                    ? " › Men"
+                    : p.gender === "womens"
+                      ? " › Women"
+                      : p.gender === "unisex"
+                        ? " › Unisex"
+                        : ""}
                 </td>
                 <td className="px-3 py-3 font-semibold">
                   {p.price.toLocaleString("en-KE")}

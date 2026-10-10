@@ -74,7 +74,7 @@ export const categories: Category[] = [
     slug: "fashion",
     name: "Fashion",
     shortName: "Fashion",
-    blurb: "Men's and women's shoes, bags and more.",
+    blurb: "Men's, women's and unisex shoes, bags and more.",
     image: CATEGORY_IMAGES.fashion,
     children: [
       {
@@ -95,6 +95,15 @@ export const categories: Category[] = [
           { slug: "womens-clothing", name: "Clothing" },
           { slug: "womens-handbags", name: "Handbags & Wallets" },
           { slug: "womens-jewellery", name: "Jewellery" },
+        ],
+      },
+      {
+        slug: "unisex-fashion",
+        name: "Unisex",
+        children: [
+          { slug: "unisex-shoes", name: "Shoes" },
+          { slug: "unisex-clothing", name: "Clothing" },
+          { slug: "unisex-accessories", name: "Accessories" },
         ],
       },
     ],

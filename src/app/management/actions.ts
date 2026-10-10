@@ -95,6 +95,7 @@ function parseGender(raw: FormDataEntryValue | null): Gender | null {
   const v = String(raw ?? "");
   if (v === "MENS") return Gender.MENS;
   if (v === "WOMENS") return Gender.WOMENS;
+  if (v === "UNISEX") return Gender.UNISEX;
   return null;
 }
 
@@ -138,7 +139,7 @@ export async function saveProduct(formData: FormData) {
   if (!category) throw new Error("Category not found");
 
   if (categorySlug === "fashion" && !gender) {
-    throw new Error("Fashion products need Men's or Women's gender so filters work");
+    throw new Error("Fashion products need Men's, Women's or Unisex so filters work");
   }
 
   const { MAX_PRODUCT_IMAGES } = await import("@/lib/product-types");

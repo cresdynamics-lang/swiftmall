@@ -24,7 +24,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const genderRaw = sp.gender ?? sp.g;
   const gender =
-    genderRaw === "mens" || genderRaw === "womens" ? genderRaw : undefined;
+    genderRaw === "mens" || genderRaw === "womens" || genderRaw === "unisex"
+      ? genderRaw
+      : undefined;
   const sub = sp.sub?.trim() || undefined;
   const items = await getProductsByCategory(slug, gender, sub);
 
@@ -59,6 +61,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             </Chip>
             <Chip href={`/category/${slug}?gender=womens`} active={gender === "womens"}>
               Women&apos;s
+            </Chip>
+            <Chip href={`/category/${slug}?gender=unisex`} active={gender === "unisex"}>
+              Unisex
             </Chip>
           </div>
         ) : subOptions.length ? (

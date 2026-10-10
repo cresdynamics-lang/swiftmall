@@ -17,6 +17,7 @@ enum OfferTag {
 enum Gender {
   MENS
   WOMENS
+  UNISEX
 }
 
 enum OrderStatus {

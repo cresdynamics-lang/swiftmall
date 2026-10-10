@@ -41,16 +41,20 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 
 export async function getProductsByCategory(
   categorySlug: string,
-  gender?: "mens" | "womens",
+  gender?: "mens" | "womens" | "unisex",
   sub?: string,
 ): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: {
       live: true,
       category: { slug: categorySlug },
-      ...(gender
-        ? { gender: gender === "mens" ? "MENS" : "WOMENS" }
-        : {}),
+      ...(gender === "mens"
+        ? { gender: { in: ["MENS", "UNISEX"] } }
+        : gender === "womens"
+          ? { gender: { in: ["WOMENS", "UNISEX"] } }
+          : gender === "unisex"
+            ? { gender: "UNISEX" }
+            : {}),
     },
     include: { category: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],

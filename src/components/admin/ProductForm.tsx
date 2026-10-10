@@ -15,6 +15,7 @@ import {
   detectSizePreset,
   type SizePreset,
 } from "@/lib/product-sizes";
+import { angleLabel } from "@/lib/product-angles";
 import {
   MAX_PRODUCT_IMAGES,
   OFFER_TAG_OPTIONS,
@@ -45,7 +46,13 @@ export function ProductForm({
   );
   const [subCategory, setSubCategory] = useState(product?.subCategory ?? "");
   const [gender, setGender] = useState(
-    product?.gender === "mens" ? "MENS" : product?.gender === "womens" ? "WOMENS" : "",
+    product?.gender === "mens"
+      ? "MENS"
+      : product?.gender === "womens"
+        ? "WOMENS"
+        : product?.gender === "unisex"
+          ? "UNISEX"
+          : "",
   );
   const [sizePreset, setSizePreset] = useState<SizePreset>(
     product ? detectSizePreset(product.sizes ?? []) : suggestedSizePreset(categorySlug),
@@ -319,7 +326,7 @@ export function ProductForm({
               className={fieldClass}
             />
           </Field>
-          <Field label={fashionGender ? "Gender * (Men’s / Women’s)" : "Gender"}>
+          <Field label={fashionGender ? "Gender * (Men’s / Women’s / Unisex)" : "Gender"}>
             <select
               name="gender"
               required={fashionGender}
@@ -330,12 +337,14 @@ export function ProductForm({
               <option value="">{fashionGender ? "Select…" : "None"}</option>
               <option value="MENS">Men&apos;s</option>
               <option value="WOMENS">Women&apos;s</option>
+              <option value="UNISEX">Unisex</option>
             </select>
           </Field>
         </div>
         {fashionGender ? (
           <p className="text-xs text-amber-800">
-            Fashion needs gender so Men&apos;s / Women&apos;s filters and home tabs work.
+            Fashion needs gender so Men&apos;s / Women&apos;s / Unisex filters and home tabs work.
+            Unisex items also appear under Men&apos;s and Women&apos;s.
           </p>
         ) : null}
 
@@ -448,8 +457,9 @@ export function ProductForm({
             />
           </Field>
           <p className="text-xs text-ink/50">
-            Upload several angles — front, side, back, detail. JPG / PNG / WebP, max 5MB each,
-            up to {MAX_PRODUCT_IMAGES} photos. First photo is the main listing image.
+            Upload set angles in order: Front, Side, Back, Detail… JPG / PNG / WebP, max 5MB
+            each, up to {MAX_PRODUCT_IMAGES}. Front is the listing image; shoppers switch
+            angles on the product page.
           </p>
 
           {allPreviews.length ? (
@@ -461,11 +471,10 @@ export function ProductForm({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="aspect-square w-full object-contain p-1" />
-                  {i === 0 ? (
-                    <span className="absolute left-1 top-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold text-brand">
-                      Main
-                    </span>
-                  ) : null}
+                  <span className="absolute left-1 top-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                    {angleLabel(i)}
+                    {i === 0 ? " · Main" : ""}
+                  </span>
                   <div className="flex flex-wrap gap-1 border-t border-ink/8 p-1.5">
                     {i > 0 ? (
                       <button
@@ -504,7 +513,9 @@ export function ProductForm({
                   </div>
                 </li>
               ))}
-              {pendingAngles.map((item, i) => (
+              {pendingAngles.map((item, i) => {
+                const angleIndex = keptImages.length + i;
+                return (
                 <li
                   key={item.key}
                   className="relative overflow-hidden rounded-md bg-white ring-1 ring-brand/40"
@@ -512,7 +523,7 @@ export function ProductForm({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.url} alt="" className="aspect-square w-full object-contain p-1" />
                   <span className="absolute left-1 top-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-ink">
-                    New
+                    {angleLabel(angleIndex)} · New
                   </span>
                   <div className="flex border-t border-ink/8 p-1.5">
                     <button
@@ -525,7 +536,8 @@ export function ProductForm({
                   </div>
                   <PendingFileInput file={item.file} />
                 </li>
-              ))}
+              );
+              })}
             </ul>
           ) : (
             <p className="text-xs text-amber-800">No photos yet — upload at least one before saving.</p>

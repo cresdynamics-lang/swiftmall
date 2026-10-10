@@ -35,7 +35,8 @@ export function ProductCard({
   const inStock = product.stock > 0;
   const low = isLowStock(product.stock, 5);
   const needsSize = product.sizes.length > 0;
-  const photo = product.images[0] || "/brand/favicon-32.png";
+  const front = product.images[0] || "/brand/favicon-32.png";
+  const side = product.images[1];
   const compact = variant === "flash";
 
   useEffect(() => {
@@ -69,12 +70,25 @@ export function ProductCard({
       <div className="relative aspect-square overflow-hidden bg-white">
         <Link href={`/product/${product.slug}`} className="absolute inset-0">
           <Image
-            src={photo}
+            key={front}
+            src={front}
             alt={product.name}
             fill
-            className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.02] sm:p-2"
+            className={`object-contain p-1.5 transition duration-300 group-hover:scale-[1.02] sm:p-2 ${
+              side ? "opacity-100 group-hover:opacity-0" : ""
+            }`}
             sizes="(max-width: 1024px) 33vw, 16vw"
           />
+          {side ? (
+            <Image
+              key={side}
+              src={side}
+              alt=""
+              fill
+              className="object-contain p-1.5 opacity-0 transition duration-300 group-hover:opacity-100 group-hover:scale-[1.02] sm:p-2"
+              sizes="(max-width: 1024px) 33vw, 16vw"
+            />
+          ) : null}
         </Link>
         {discount != null ? (
           <span

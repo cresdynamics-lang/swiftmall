@@ -7,6 +7,7 @@ import { useCategories } from "@/context/CategoriesContext";
 import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
 import { formatKes } from "@/lib/format";
+import { fashionGenderFromSlug } from "@/lib/product-angles";
 
 type MobileDrawerProps = {
   open: boolean;
@@ -74,11 +75,9 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
                           <Link
                             key={child.slug}
                             href={
-                              child.slug.includes("mens")
-                                ? `/category/${cat.slug}?gender=mens`
-                                : child.slug.includes("womens")
-                                  ? `/category/${cat.slug}?gender=womens`
-                                  : `/category/${cat.slug}?sub=${child.slug}`
+                              fashionGenderFromSlug(child.slug)
+                                ? `/category/${cat.slug}?gender=${fashionGenderFromSlug(child.slug)}`
+                                : `/category/${cat.slug}?sub=${child.slug}`
                             }
                             onClick={onClose}
                             className="block text-sm font-medium text-ink/80"

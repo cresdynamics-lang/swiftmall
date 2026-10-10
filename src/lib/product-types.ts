@@ -1,5 +1,5 @@
 export type OfferTag = "NONE" | "TODAY" | "THIS_WEEK" | "NEW";
-export type Gender = "mens" | "womens";
+export type Gender = "mens" | "womens" | "unisex";
 
 /** Max angle photos per product (admin upload + storefront gallery). */
 export const MAX_PRODUCT_IMAGES = 8;

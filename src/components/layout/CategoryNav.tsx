@@ -8,6 +8,7 @@ import { useProducts } from "@/context/ProductsContext";
 import { getCategoryOffer } from "@/lib/catalog";
 import type { Category } from "@/lib/categories";
 import { discountPercent, formatKes } from "@/lib/format";
+import { fashionGenderFromSlug } from "@/lib/product-angles";
 
 export function CategoryNav() {
   const categories = useCategories();
@@ -88,11 +89,9 @@ function CategoryHoverItem({
                   <div key={child.slug} className="mb-3 last:mb-0">
                     <Link
                       href={
-                        child.slug.includes("mens")
-                          ? `/category/${category.slug}?gender=mens`
-                          : child.slug.includes("womens")
-                            ? `/category/${category.slug}?gender=womens`
-                            : `/category/${category.slug}?sub=${child.slug}`
+                        fashionGenderFromSlug(child.slug)
+                          ? `/category/${category.slug}?gender=${fashionGenderFromSlug(child.slug)}`
+                          : `/category/${category.slug}?sub=${child.slug}`
                       }
                       className="text-sm font-semibold text-ink hover:text-brand-dark"
                       onClick={onClose}
@@ -105,7 +104,7 @@ function CategoryHoverItem({
                           <li key={leaf.slug}>
                             <Link
                               href={`/category/${category.slug}?gender=${
-                                child.slug.includes("mens") ? "mens" : "womens"
+                                fashionGenderFromSlug(child.slug) ?? "mens"
                               }`}
                               className="text-xs text-ink/65 hover:text-ink"
                               onClick={onClose}

@@ -184,6 +184,7 @@ function MobileSubs({
       ? [
           { name: "Men's", href: "/category/fashion?gender=mens" },
           { name: "Women's", href: "/category/fashion?gender=womens" },
+          { name: "Unisex", href: "/category/fashion?gender=unisex" },
         ]
       : (category.children ?? []).map((c) => ({
           name: c.name,
@@ -250,6 +251,7 @@ function Flyout({
       ? [
           { name: "Men's", href: "/category/fashion?gender=mens" },
           { name: "Women's", href: "/category/fashion?gender=womens" },
+          { name: "Unisex", href: "/category/fashion?gender=unisex" },
         ]
       : null;
   const subs =

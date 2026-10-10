@@ -23,6 +23,7 @@ export default async function AdminCategoriesPage() {
           {categories.map((c, index) => {
             const mens = c.products.filter((p) => p.gender === "MENS").length;
             const womens = c.products.filter((p) => p.gender === "WOMENS").length;
+            const unisex = c.products.filter((p) => p.gender === "UNISEX").length;
             return (
               <li key={c.id} className="py-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -33,7 +34,7 @@ export default async function AdminCategoriesPage() {
                     </p>
                     {c.slug === "fashion" ? (
                       <p className="mt-1 text-xs text-ink/45">
-                        ↳ Men&apos;s Fashion ({mens}) · ↳ Women&apos;s Fashion ({womens})
+                        ↳ Men&apos;s ({mens}) · Women&apos;s ({womens}) · Unisex ({unisex})
                       </p>
                     ) : null}
                   </div>

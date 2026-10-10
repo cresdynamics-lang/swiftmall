@@ -6,13 +6,14 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
-import type { Product } from "@/lib/product-types";
+import { genderMatchesFilter } from "@/lib/product-angles";
+import type { Gender, Product } from "@/lib/product-types";
 
 type ProductsContextValue = {
   products: Product[];
   byId: (id: string) => Product | undefined;
   bySlug: (slug: string) => Product | undefined;
-  byCategory: (slug: string, gender?: "mens" | "womens") => Product[];
+  byCategory: (slug: string, gender?: Gender) => Product[];
   search: (query: string, limit?: number) => Product[];
 };
 
@@ -35,8 +36,7 @@ export function ProductsProvider({
       byCategory: (slug, gender) =>
         products.filter((p) => {
           if (p.category !== slug) return false;
-          if (gender && p.gender && p.gender !== gender) return false;
-          return true;
+          return genderMatchesFilter(p.gender, gender);
         }),
       search: (query, limit = 8) => {
         const q = query.trim().toLowerCase();

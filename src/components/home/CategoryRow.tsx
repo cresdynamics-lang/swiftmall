@@ -12,7 +12,7 @@ const MAX_ITEMS = 12;
 export function CategoryRow({ category }: { category: Category }) {
   const { byCategory } = useProducts();
   const isFashion = category.slug === "fashion";
-  const [gender, setGender] = useState<"mens" | "womens" | undefined>(
+  const [gender, setGender] = useState<"mens" | "womens" | "unisex" | undefined>(
     isFashion ? "mens" : undefined,
   );
   const items = byCategory(category.slug, gender).slice(0, MAX_ITEMS);
@@ -35,8 +35,14 @@ export function CategoryRow({ category }: { category: Category }) {
       </div>
 
       {isFashion && (
-        <div className="mb-3 flex gap-2">
-          {(["mens", "womens"] as const).map((g) => (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {(
+            [
+              ["mens", "Men's"],
+              ["womens", "Women's"],
+              ["unisex", "Unisex"],
+            ] as const
+          ).map(([g, label]) => (
             <button
               key={g}
               type="button"
@@ -47,7 +53,7 @@ export function CategoryRow({ category }: { category: Category }) {
                   : "bg-ink/[0.05] text-ink/70 hover:bg-ink/10"
               }`}
             >
-              {g === "mens" ? "Men's" : "Women's"}
+              {label}
             </button>
           ))}
         </div>

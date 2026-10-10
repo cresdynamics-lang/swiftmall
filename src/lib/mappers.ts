@@ -24,7 +24,11 @@ export function mapProduct(row: DbProductWithCategory): Product {
     live: row.live,
     offerTag: row.offerTag as OfferTag,
     gender: row.gender
-      ? ((row.gender === "MENS" ? "mens" : "womens") as Gender)
+      ? ((row.gender === "MENS"
+          ? "mens"
+          : row.gender === "WOMENS"
+            ? "womens"
+            : "unisex") as Gender)
       : undefined,
     sizes: row.sizes ?? [],
   };
