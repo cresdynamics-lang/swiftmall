@@ -20,6 +20,7 @@ export function ProductGallery({
     <div>
       <div className="relative aspect-square overflow-hidden rounded-xl bg-white ring-1 ring-ink/8">
         <Image
+          key={current}
           src={current}
           alt={name}
           fill
