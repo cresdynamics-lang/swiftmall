@@ -28,6 +28,10 @@
 /_brand_logos/
 /_product_photos/
 
+# runtime admin uploads (served via /uploads route, not public/)
+/uploads/*
+!/uploads/.gitkeep
+
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -46,3 +50,4 @@ next-env.d.ts
 
 /src/generated/prisma
 .tmp-admin-mockup/
+.admin-password

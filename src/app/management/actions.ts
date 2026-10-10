@@ -9,26 +9,66 @@ import { ensureStoreSettings } from "@/lib/settings";
 
 const AUTH_COOKIE = "swiftmall_admin";
 
+/**
+ * Read admin credentials at runtime (dynamic keys + optional file) so Next
+ * cannot bake a wrong value at build time — `$` in passwords breaks .env expand.
+ */
+async function getAdminCredentials() {
+  const emailKey = ["ADMIN", "EMAIL"].join("_");
+  const passKey = ["ADMIN", "PASSWORD"].join("_");
+  let email = (process.env[emailKey] ?? "martin@swiftmall.co.ke").toLowerCase();
+  let password = process.env[passKey] ?? "";
+
+  if (!password) {
+    try {
+      const { readFile } = await import("fs/promises");
+      const { join } = await import("path");
+      password = (
+        await readFile(join(process.cwd(), ".admin-password"), "utf8")
+      ).trim();
+    } catch {
+      password = "Martin100";
+    }
+  }
+
+  // Normalize legacy $ passwords that Next/.env often strip or escape
+  if (
+    password === "Martin" ||
+    password === String.raw`Martin\$100` ||
+    password === "Martin$100"
+  ) {
+    password = "Martin100";
+  }
+
+  return { email, password };
+}
+
+function adminCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+  };
+}
+
 export async function adminLogin(formData: FormData) {
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
-  const password = String(formData.get("password") ?? "");
-  const expectedEmail = (
-    process.env.ADMIN_EMAIL ?? "martin@swiftmall.co.ke"
-  ).toLowerCase();
-  const expectedPassword = process.env.ADMIN_PASSWORD ?? "Martin$100";
+  let password = String(formData.get("password") ?? "");
+  // Accept legacy Martin$100 entries (shells/.env often break the `$`)
+  if (password === "Martin$100" || password === String.raw`Martin\$100`) {
+    password = "Martin100";
+  }
+  const expected = await getAdminCredentials();
 
-  if (email !== expectedEmail || password !== expectedPassword) {
+  if (email !== expected.email || password !== expected.password) {
     redirect("/management/login?error=1");
   }
 
   const jar = await cookies();
-  jar.set(AUTH_COOKIE, "1", {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-  });
+  jar.set(AUTH_COOKIE, "1", adminCookieOptions());
   redirect("/management");
 }
 
@@ -101,20 +141,28 @@ export async function saveProduct(formData: FormData) {
     throw new Error("Fashion products need Men's or Women's gender so filters work");
   }
 
-  const { saveProductImageFile } = await import("@/lib/product-image");
-  const uploaded = await saveProductImageFile(
-    formData.get("imageFile") instanceof File
-      ? (formData.get("imageFile") as File)
-      : null,
-  );
-  const existingImages = id
-    ? ((await prisma.product.findUnique({ where: { id }, select: { images: true } }))
-        ?.images ?? [])
-    : [];
-  const images = uploaded ? [uploaded] : existingImages;
+  const { MAX_PRODUCT_IMAGES } = await import("@/lib/product-types");
+  const { saveProductImageFiles } = await import("@/lib/product-image");
+  const keptImages = formData
+    .getAll("keepImages")
+    .map((v) => String(v).trim())
+    .filter((v) => v.startsWith("/") && !v.includes(".."));
+  const newFiles = formData
+    .getAll("imageFiles")
+    .filter((v): v is File => v instanceof File && v.size > 0);
+  // Back-compat: older form field name
+  const single = formData.get("imageFile");
+  if (single instanceof File && single.size > 0) newFiles.push(single);
+
+  if (keptImages.length + newFiles.length > MAX_PRODUCT_IMAGES) {
+    throw new Error(`You can upload up to ${MAX_PRODUCT_IMAGES} product photos`);
+  }
+
+  const uploaded = await saveProductImageFiles(newFiles);
+  const images = [...keptImages, ...uploaded];
 
   if (!images.length) {
-    throw new Error("Upload a product photo before saving");
+    throw new Error("Upload at least one product photo before saving");
   }
 
   const data = {

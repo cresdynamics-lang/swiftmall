@@ -15,7 +15,14 @@ import {
   detectSizePreset,
   type SizePreset,
 } from "@/lib/product-sizes";
-import { OFFER_TAG_OPTIONS, type OfferTag, type Product } from "@/lib/product-types";
+import {
+  MAX_PRODUCT_IMAGES,
+  OFFER_TAG_OPTIONS,
+  type OfferTag,
+  type Product,
+} from "@/lib/product-types";
+
+type PendingAngle = { key: string; file: File; url: string };
 
 type CategoryOption = { slug: string; name: string };
 
@@ -49,7 +56,16 @@ export function ProductForm({
       ? (product?.sizes ?? []).join(", ")
       : "",
   );
-  const [previewUrl, setPreviewUrl] = useState(product?.images?.[0] ?? "");
+  const [keptImages, setKeptImages] = useState<string[]>(product?.images ?? []);
+  const [pendingAngles, setPendingAngles] = useState<PendingAngle[]>([]);
+  const [fileInputKey, setFileInputKey] = useState(0);
+
+  const allPreviews = useMemo(
+    () => [...keptImages, ...pendingAngles.map((p) => p.url)],
+    [keptImages, pendingAngles],
+  );
+  const previewUrl = allPreviews[0] ?? "";
+  const slotsLeft = MAX_PRODUCT_IMAGES - keptImages.length - pendingAngles.length;
 
   const priceNum = Number(price) || 0;
   const oldNum = oldPrice ? Number(oldPrice) : undefined;
@@ -102,16 +118,61 @@ export function ProductForm({
     );
   }
 
-  function onFileChange(file: File | null) {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+  function onFilesSelected(fileList: FileList | null) {
+    if (!fileList?.length) return;
+    const room = MAX_PRODUCT_IMAGES - keptImages.length - pendingAngles.length;
+    if (room <= 0) return;
+    const next: PendingAngle[] = [];
+    for (const file of Array.from(fileList).slice(0, room)) {
+      next.push({
+        key: `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
+        file,
+        url: URL.createObjectURL(file),
+      });
+    }
+    setPendingAngles((prev) => [...prev, ...next]);
+    setFileInputKey((k) => k + 1);
+  }
+
+  function removeKept(index: number) {
+    setKeptImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removePending(index: number) {
+    setPendingAngles((prev) => {
+      const target = prev[index];
+      if (target) URL.revokeObjectURL(target.url);
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
+  function moveKept(index: number, dir: -1 | 1) {
+    setKeptImages((prev) => {
+      const next = [...prev];
+      const j = index + dir;
+      if (j < 0 || j >= next.length) return prev;
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
+  }
+
+  function makeKeptMain(index: number) {
+    setKeptImages((prev) => {
+      if (index <= 0 || index >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.unshift(item);
+      return next;
+    });
   }
 
   return (
     <form action={saveProduct} className="grid gap-6 lg:grid-cols-[1fr_280px]">
       {product?.id ? <input type="hidden" name="id" value={product.id} /> : null}
       <input type="hidden" name="sizePreset" value={sizePreset} />
+      {keptImages.map((src) => (
+        <input key={src} type="hidden" name="keepImages" value={src} />
+      ))}
 
       <div className="space-y-4 rounded-xl bg-white p-5 ring-1 ring-ink/8">
         <h2 className="font-display text-lg font-bold">
@@ -375,29 +436,104 @@ export function ProductForm({
         </div>
 
         <div className="space-y-3 rounded-lg border border-ink/10 bg-ink/[0.02] p-4">
-          <Field label="Product photo *">
+          <Field label="Product photos (angles) *">
             <input
-              name="imageFile"
+              key={fileInputKey}
               type="file"
               accept="image/jpeg,image/png,image/webp"
+              multiple
+              disabled={slotsLeft <= 0}
               className={fieldClass}
-              onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+              onChange={(e) => onFilesSelected(e.target.files)}
             />
           </Field>
           <p className="text-xs text-ink/50">
-            Upload JPG / PNG / WebP (max 5MB).
-            {product?.images?.[0] ? " Leave empty to keep the current photo." : ""}
+            Upload several angles — front, side, back, detail. JPG / PNG / WebP, max 5MB each,
+            up to {MAX_PRODUCT_IMAGES} photos. First photo is the main listing image.
           </p>
-          {previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={previewUrl}
-              alt=""
-              className="mt-2 h-28 w-28 rounded-md object-contain ring-1 ring-ink/10"
-            />
+
+          {allPreviews.length ? (
+            <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {keptImages.map((src, i) => (
+                <li
+                  key={`kept-${src}`}
+                  className="relative overflow-hidden rounded-md bg-white ring-1 ring-ink/10"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="aspect-square w-full object-contain p-1" />
+                  {i === 0 ? (
+                    <span className="absolute left-1 top-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                      Main
+                    </span>
+                  ) : null}
+                  <div className="flex flex-wrap gap-1 border-t border-ink/8 p-1.5">
+                    {i > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => makeKeptMain(i)}
+                        className="text-[10px] font-semibold text-ink underline"
+                      >
+                        Make main
+                      </button>
+                    ) : null}
+                    {i > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => moveKept(i, -1)}
+                        className="text-[10px] font-semibold text-ink/55 underline"
+                      >
+                        ←
+                      </button>
+                    ) : null}
+                    {i < keptImages.length - 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => moveKept(i, 1)}
+                        className="text-[10px] font-semibold text-ink/55 underline"
+                      >
+                        →
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => removeKept(i)}
+                      className="ml-auto text-[10px] font-semibold text-red-700 underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </li>
+              ))}
+              {pendingAngles.map((item, i) => (
+                <li
+                  key={item.key}
+                  className="relative overflow-hidden rounded-md bg-white ring-1 ring-brand/40"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.url} alt="" className="aspect-square w-full object-contain p-1" />
+                  <span className="absolute left-1 top-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-ink">
+                    New
+                  </span>
+                  <div className="flex border-t border-ink/8 p-1.5">
+                    <button
+                      type="button"
+                      onClick={() => removePending(i)}
+                      className="ml-auto text-[10px] font-semibold text-red-700 underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <PendingFileInput file={item.file} />
+                </li>
+              ))}
+            </ul>
           ) : (
-            <p className="text-xs text-amber-800">No photo yet — upload before saving.</p>
+            <p className="text-xs text-amber-800">No photos yet — upload at least one before saving.</p>
           )}
+          <p className="text-xs text-ink/45">
+            {allPreviews.length}/{MAX_PRODUCT_IMAGES} photos
+            {slotsLeft <= 0 ? " — limit reached." : ` · ${slotsLeft} more can be added.`}
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
@@ -448,6 +584,19 @@ export function ProductForm({
             alt=""
             className="mt-3 h-36 w-full rounded-md object-contain bg-ink/[0.03]"
           />
+        ) : null}
+        {allPreviews.length > 1 ? (
+          <div className="mt-2 grid grid-cols-4 gap-1">
+            {allPreviews.slice(0, 4).map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${src}-${i}`}
+                src={src}
+                alt=""
+                className="aspect-square rounded object-cover ring-1 ring-ink/10"
+              />
+            ))}
+          </div>
         ) : null}
         <p className="mt-3 line-clamp-2 text-sm font-semibold">{name || "Product name"}</p>
         <div className="mt-2 flex items-baseline gap-2">
@@ -518,5 +667,22 @@ function Field({
       <span className="mb-1 block font-medium text-ink/80">{label}</span>
       {children}
     </label>
+  );
+}
+
+/** Attach a File to FormData — input.files is not assignable via React props. */
+function PendingFileInput({ file }: { file: File }) {
+  return (
+    <input
+      type="file"
+      name="imageFiles"
+      className="hidden"
+      ref={(el) => {
+        if (!el || el.files?.[0] === file) return;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        el.files = dt.files;
+      }}
+    />
   );
 }

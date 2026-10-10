@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductActions } from "@/components/product/ProductActions";
@@ -9,6 +8,7 @@ import {
   ProductWhatsAppOrder,
   ShopOtherDepartments,
 } from "@/components/product/ProductExtras";
+import { ProductGallery } from "@/components/product/ProductGallery";
 import { TrackView } from "@/components/product/TrackView";
 import { business } from "@/lib/business";
 import { listStoreCategories, getStoreCategory } from "@/lib/categories-db";
@@ -127,28 +127,24 @@ export default async function ProductPage({ params }: PageProps) {
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-xl bg-white ring-1 ring-ink/8">
-          <Image
-            src={product.images[0]}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            priority
-          />
-          <div className="absolute left-3 top-3 flex flex-col gap-1">
-            {discount != null && (
-              <span className="w-fit rounded bg-ink px-2 py-1 text-xs font-bold text-brand">
-                -{discount}%
-              </span>
-            )}
-            {promo && (
-              <span className="w-fit rounded bg-brand px-2 py-1 text-xs font-bold uppercase text-ink">
-                {promo}
-              </span>
-            )}
-          </div>
-        </div>
+        <ProductGallery
+          images={product.images}
+          name={product.name}
+          badges={
+            <>
+              {discount != null ? (
+                <span className="w-fit rounded bg-ink px-2 py-1 text-xs font-bold text-brand">
+                  -{discount}%
+                </span>
+              ) : null}
+              {promo ? (
+                <span className="w-fit rounded bg-brand px-2 py-1 text-xs font-bold uppercase text-ink">
+                  {promo}
+                </span>
+              ) : null}
+            </>
+          }
+        />
 
         <div>
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{product.name}</h1>

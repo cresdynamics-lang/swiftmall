@@ -9,7 +9,8 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         ADMIN_EMAIL: "martin@swiftmall.co.ke",
-        ADMIN_PASSWORD: "Martin$100",
+        // No `$` — Next/.env expansion and shells corrupt Martin$100
+        ADMIN_PASSWORD: "Martin100",
       },
     },
   ],

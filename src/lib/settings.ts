@@ -1,4 +1,3 @@
-import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/db";
 import { storeConfig } from "@/lib/store-config";
 
@@ -73,7 +72,7 @@ export async function ensureStoreSettings() {
 }
 
 export async function getStoreSettings(): Promise<RuntimeSettings> {
-  noStore();
+  // Cached with the page — admin saveStoreSettings already revalidatePath("/")
   const row = await ensureStoreSettings();
   return {
     shippingFlatKes: row.shippingFlatKes,

@@ -15,6 +15,9 @@ import { HERO_SLIDES } from "@/lib/hero-slides";
 import { listLiveProducts } from "@/lib/products";
 import { getStoreSettings } from "@/lib/settings";
 
+/** Cache the storefront home for a minute so cold opens stay fast. */
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: {
     absolute: "Swift Mall | Online Shop Kenya: Beauty, Electronics, Phones, Home",
