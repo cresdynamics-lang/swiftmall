@@ -176,7 +176,19 @@ export async function placeOrder(input: PlaceOrderInput) {
     resolved.push({ product, qty: line.qty, size: line.size });
   }
 
-  const subtotal = resolved.reduce((s, r) => s + r.product.price * r.qty, 0);
+  const { parseSizePrices, priceForProduct } = await import("@/lib/product-price");
+  const priced = resolved.map((r) => ({
+    ...r,
+    unitPrice: priceForProduct(
+      {
+        price: r.product.price,
+        sizes: r.product.sizes,
+        sizePrices: parseSizePrices(r.product.sizePrices),
+      },
+      r.size,
+    ),
+  }));
+  const subtotal = priced.reduce((s, r) => s + r.unitPrice * r.qty, 0);
   const shipping = input.shipping;
   const total = subtotal + shipping;
   const paymentState = paymentStateFromMethod(input.paymentMethod);
@@ -225,11 +237,11 @@ export async function placeOrder(input: PlaceOrderInput) {
         total,
         depositPaid,
         items: {
-          create: resolved.map((r) => ({
+          create: priced.map((r) => ({
             productId: r.product.id,
             name: r.product.name,
             image: r.product.images[0] || "/brand/favicon-32.png",
-            unitPrice: r.product.price,
+            unitPrice: r.unitPrice,
             qty: r.qty,
             size: r.size ?? null,
           })),

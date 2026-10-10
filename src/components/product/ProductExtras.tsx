@@ -10,20 +10,24 @@ import type { Product } from "@/lib/product-types";
 export function ProductWhatsAppOrder({
   productName,
   priceLabel,
+  productUrl,
 }: {
   productName: string;
   priceLabel: string;
+  productUrl?: string;
 }) {
-  const msg = `Hi Swiftmall, I'd like to order: ${productName} (${priceLabel})`;
+  const msg = productUrl
+    ? `Hi Swiftmall, I'd like to order: ${productName} (${priceLabel}) — ${productUrl}`
+    : `Hi Swiftmall, I'd like to order: ${productName} (${priceLabel})`;
   return (
     <a
       href={whatsappHref(msg)}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-3 text-sm font-semibold text-white hover:brightness-110"
+      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-3 text-sm font-semibold text-white hover:brightness-95"
     >
       <WhatsAppIcon />
-      Order via WhatsApp · {storeConfig.whatsappNumber}
+      WhatsApp · {storeConfig.whatsappNumber}
     </a>
   );
 }

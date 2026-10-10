@@ -13,8 +13,9 @@ import { TrackView } from "@/components/product/TrackView";
 import { business } from "@/lib/business";
 import { listStoreCategories, getStoreCategory } from "@/lib/categories-db";
 import { discountPercent, formatKes, isLowStock, offerTagLabel } from "@/lib/format";
+import { fromPrice } from "@/lib/product-price";
 import { getProduct, getProductsByCategory, listLiveProducts } from "@/lib/products";
-import { paymentLabels, whatsappHref } from "@/lib/store-config";
+import { paymentLabels } from "@/lib/store-config";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -155,13 +156,15 @@ export default async function ProductPage({ params }: PageProps) {
           </p>
 
           <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            {product.oldPrice ? (
+            {product.oldPrice && !product.sizePrices ? (
               <span className="text-lg text-ink/35 line-through">
                 {formatKes(product.oldPrice)}
               </span>
             ) : null}
             <span className="font-display text-3xl font-bold text-ink">
-              {formatKes(product.price)}
+              {product.sizePrices
+                ? `From ${formatKes(fromPrice(product))}`
+                : formatKes(product.price)}
             </span>
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm">
@@ -184,25 +187,19 @@ export default async function ProductPage({ params }: PageProps) {
           </p>
 
           <ProductActions
-            productId={product.id}
+            product={product}
             stock={product.stock}
             sizes={product.sizes}
           />
 
-          <a
-            href={whatsappHref(
-              `Hi Swift Mall, I'm interested in ${product.name}, ${business.url}/product/${product.slug}`,
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex min-h-11 w-full items-center justify-center rounded-md bg-[#25D366] px-4 text-sm font-semibold text-white hover:brightness-95"
-          >
-            Ask on WhatsApp
-          </a>
-
           <ProductWhatsAppOrder
             productName={product.name}
-            priceLabel={formatKes(product.price)}
+            productUrl={`${business.url}/product/${product.slug}`}
+            priceLabel={
+              product.sizePrices
+                ? `From ${formatKes(fromPrice(product))}`
+                : formatKes(product.price)
+            }
           />
 
           <details className="mt-6 rounded-lg bg-white p-4 ring-1 ring-ink/8">

@@ -77,6 +77,8 @@ model Product {
   gender        Gender?
   /** Available size labels e.g. "EU 42" or "100 cm" — empty = no size picker */
   sizes         String[]
+  /** Optional per-size prices, e.g. { "40 cm": 1200, "200 cm": 10000 } */
+  sizePrices    Json?
   categoryId    String
   category      Category         @relation(fields: [categoryId], references: [id])
   sortOrder     Int              @default(0)

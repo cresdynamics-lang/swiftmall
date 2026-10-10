@@ -26,6 +26,8 @@ export type Product = {
   gender?: Gender;
   /** Available sizes shoppers can pick (shoes EU, teddy cm, or custom) */
   sizes: string[];
+  /** When set, checkout uses this price for the chosen size */
+  sizePrices?: Record<string, number>;
 };
 
 export const OFFER_TAG_OPTIONS: { value: OfferTag; label: string }[] = [

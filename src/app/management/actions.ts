@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Gender, OfferTag, OrderStatus } from "@prisma/client";
+import { Gender, OfferTag, OrderStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ensureStoreSettings } from "@/lib/settings";
 
@@ -128,10 +128,12 @@ export async function saveProduct(formData: FormData) {
   const offerTag = parseOfferTag(formData.get("offerTag"));
   const gender = parseGender(formData.get("gender"));
   const { parseSizesFromForm } = await import("@/lib/product-sizes");
+  const { parseSizePricesFromForm } = await import("@/lib/product-price");
   const sizes = parseSizesFromForm(formData);
+  const sizePrices = parseSizePricesFromForm(formData, sizes);
   let slug = String(formData.get("slug") ?? "").trim() || slugify(name);
 
-  if (!name || !categorySlug || !price) {
+  if (!name || !categorySlug || (!price && !sizePrices)) {
     throw new Error("Name, category and price are required");
   }
 
@@ -205,7 +207,7 @@ export async function saveProduct(formData: FormData) {
     brand,
     subCategory,
     sku,
-    price,
+    price: sizePrices ? Math.min(...Object.values(sizePrices)) : price,
     oldPrice,
     stock,
     lowStockAt,
@@ -216,6 +218,7 @@ export async function saveProduct(formData: FormData) {
     offerTag,
     gender,
     sizes,
+    sizePrices: sizePrices ?? Prisma.DbNull,
     categoryId: category.id,
   };
 

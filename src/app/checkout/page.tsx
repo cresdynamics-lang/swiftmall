@@ -9,6 +9,7 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import { Logo } from "@/components/layout/Logo";
 import { formatKes } from "@/lib/format";
+import { priceForProduct } from "@/lib/product-price";
 import { KENYA_COUNTIES } from "@/lib/counties";
 import {
   paymentLabels,
@@ -277,7 +278,9 @@ export default function CheckoutPage() {
                         {size ? ` · ${size}` : ""}
                       </p>
                     </div>
-                    <p className="font-semibold">{formatKes(product.price * qty)}</p>
+                    <p className="font-semibold">
+                      {formatKes(priceForProduct(product, size) * qty)}
+                    </p>
                   </li>
                 ))}
               </ul>

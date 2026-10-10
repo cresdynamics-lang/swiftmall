@@ -12,6 +12,7 @@ import {
   isLowStock,
   saveAmount,
 } from "@/lib/format";
+import { fromPrice } from "@/lib/product-price";
 import type { Product } from "@/lib/product-types";
 
 /** Storefront product grids: 3 across on phones, 6 on desktop. */
@@ -35,6 +36,8 @@ export function ProductCard({
   const inStock = product.stock > 0;
   const low = isLowStock(product.stock, 5);
   const needsSize = product.sizes.length > 0;
+  const displayPrice = fromPrice(product);
+  const hasSizePrices = Boolean(product.sizePrices && Object.keys(product.sizePrices).length);
   const front = product.images[0] || "/brand/favicon-32.png";
   const side = product.images[1];
   const compact = variant === "flash";
@@ -133,7 +136,7 @@ export function ProductCard({
             </span>
           ) : null}
           <span className={`font-display font-bold text-ink ${compact ? "text-xs" : "text-base"}`}>
-            {formatKes(product.price)}
+            {hasSizePrices ? `From ${formatKes(displayPrice)}` : formatKes(product.price)}
           </span>
         </div>
 

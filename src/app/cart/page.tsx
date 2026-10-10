@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import { useSaved } from "@/context/SavedContext";
 import { formatKes } from "@/lib/format";
+import { priceForProduct } from "@/lib/product-price";
 export default function CartPage() {
   const { byId } = useProducts();
   const { lines, itemCount, subtotal, shipping, total, setQty, remove } = useCart();
@@ -100,9 +101,11 @@ export default function CartPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-display text-sm font-bold">{formatKes(p.price)}</p>
+                    <p className="font-display text-sm font-bold">
+                      {formatKes(priceForProduct(p, line.size))}
+                    </p>
                     <p className="mt-1 text-xs text-ink/45">
-                      Total {formatKes(p.price * line.qty)}
+                      Total {formatKes(priceForProduct(p, line.size) * line.qty)}
                     </p>
                   </div>
                 </div>

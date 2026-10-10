@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import { formatKes } from "@/lib/format";
+import { priceForProduct } from "@/lib/product-price";
 import { storeConfig } from "@/lib/store-config";
 
 export function CartDrawer() {
@@ -73,7 +74,9 @@ export function CartDrawer() {
                       {line.size ? (
                         <p className="text-xs text-ink/55">Size: {line.size}</p>
                       ) : null}
-                      <p className="mt-0.5 text-sm font-semibold">{formatKes(p.price)}</p>
+                      <p className="mt-0.5 text-sm font-semibold">
+                        {formatKes(priceForProduct(p, line.size))}
+                      </p>
                       <div className="mt-2 flex items-center gap-2">
                         <div className="inline-flex items-center rounded border border-ink/15">
                           <button
@@ -102,7 +105,7 @@ export function CartDrawer() {
                       </div>
                     </div>
                     <p className="shrink-0 text-sm font-bold text-ink">
-                      {formatKes(p.price * line.qty)}
+                      {formatKes(priceForProduct(p, line.size) * line.qty)}
                     </p>
                   </li>
                 );

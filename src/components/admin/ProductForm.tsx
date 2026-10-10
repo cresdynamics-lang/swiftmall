@@ -12,9 +12,12 @@ import {
 import { discountPercent, formatKes, offerTagLabel } from "@/lib/format";
 import {
   SIZE_PRESET_OPTIONS,
+  SHOE_EU_SIZES,
+  TEDDY_CM_SIZES,
   detectSizePreset,
   type SizePreset,
 } from "@/lib/product-sizes";
+import { defaultTeddySizePrices, TEDDY_SIZE_PRICES } from "@/lib/product-price";
 import { extraAngleLabel } from "@/lib/product-angles";
 import {
   MAX_PRODUCT_IMAGES,
@@ -60,6 +63,24 @@ export function ProductForm({
     product ? detectSizePreset(product.sizes ?? []) : suggestedSizePreset(categorySlug),
   );
   const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
+  const [sizePrices, setSizePrices] = useState<Record<string, string>>(() => {
+    const existing = product?.sizePrices ?? {};
+    const out: Record<string, string> = {};
+    for (const [size, value] of Object.entries(existing)) {
+      out[size] = String(value);
+    }
+    const teddyDefaults = defaultTeddySizePrices([...TEDDY_CM_SIZES]);
+    for (const size of TEDDY_CM_SIZES) {
+      if (!out[size] && teddyDefaults[size] != null) out[size] = String(teddyDefaults[size]);
+    }
+    const base = product?.price;
+    if (base != null && base > 0) {
+      for (const size of product?.sizes ?? []) {
+        if (!out[size] && SHOE_EU_SIZES.includes(size)) out[size] = String(base);
+      }
+    }
+    return out;
+  });
   const [customSizes, setCustomSizes] = useState(
     detectSizePreset(product?.sizes ?? []) === "CUSTOM"
       ? (product?.sizes ?? []).join(", ")
@@ -112,6 +133,19 @@ export function ProductForm({
     }
   }
 
+  function seedSizePrices(sizes: string[], fallback?: number) {
+    setSizePrices((prev) => {
+      const out = { ...prev };
+      const teddyDefaults = defaultTeddySizePrices([...TEDDY_CM_SIZES]);
+      for (const size of sizes) {
+        if (out[size]) continue;
+        if (teddyDefaults[size] != null) out[size] = String(teddyDefaults[size]);
+        else if (fallback != null && fallback > 0) out[size] = String(fallback);
+      }
+      return out;
+    });
+  }
+
   function onPresetChange(next: SizePreset) {
     setSizePreset(next);
     const meta = SIZE_PRESET_OPTIONS.find((o) => o.value === next);
@@ -122,13 +156,37 @@ export function ProductForm({
       setSelectedSizes([]);
     } else if (meta?.options.length) {
       setSelectedSizes([...meta.options]);
+      if (next === "TEDDY_CM") {
+        seedSizePrices([...TEDDY_CM_SIZES]);
+        const defaults = defaultTeddySizePrices([...TEDDY_CM_SIZES]);
+        const min = Math.min(...Object.values(defaults));
+        if (!price || Number(price) <= 0) setPrice(String(min));
+      } else if (next === "SHOE_EU") {
+        const base = Number(price) || product?.price || 0;
+        seedSizePrices([...SHOE_EU_SIZES], base);
+      }
     }
   }
 
   function toggleSize(size: string) {
-    setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
-    );
+    setSelectedSizes((prev) => {
+      const next = prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size];
+      if (!prev.includes(size)) {
+        const base = Number(price) || product?.price || 0;
+        seedSizePrices([size], base);
+      }
+      return next;
+    });
+  }
+
+  function fillShoePricesFromListing() {
+    const base = Number(price) || 0;
+    if (base <= 0) return;
+    setSizePrices((prev) => {
+      const out = { ...prev };
+      for (const size of selectedSizes) out[size] = String(base);
+      return out;
+    });
   }
 
   function onDisplaySelected(file: File | null) {
@@ -405,7 +463,12 @@ export function ProductForm({
                   <button
                     type="button"
                     className="font-semibold text-ink underline"
-                    onClick={() => setSelectedSizes([...(presetMeta?.options ?? [])])}
+                    onClick={() => {
+                      const all = [...(presetMeta?.options ?? [])];
+                      setSelectedSizes(all);
+                      const base = Number(price) || product?.price || 0;
+                      seedSizePrices(all, base);
+                    }}
                   >
                     Select all
                   </button>
@@ -443,6 +506,59 @@ export function ProductForm({
                   );
                 })}
               </div>
+              {(sizePreset === "TEDDY_CM" || sizePreset === "SHOE_EU") &&
+              selectedSizes.length > 0 ? (
+                <div className="mt-4">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-ink/80">
+                      {sizePreset === "TEDDY_CM"
+                        ? "Price per size (KES) — 40 cm = 1,200 · 200 cm = 10,000"
+                        : "Price per shoe size (KES)"}
+                    </p>
+                    {sizePreset === "SHOE_EU" ? (
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-ink underline"
+                        onClick={fillShoePricesFromListing}
+                      >
+                        Fill all with listing price
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="grid max-h-64 gap-2 overflow-y-auto sm:grid-cols-2">
+                    {selectedSizes.map((size) => (
+                      <label
+                        key={size}
+                        className="flex items-center gap-2 text-xs font-medium text-ink/70"
+                      >
+                        <span className="w-16 shrink-0">{size}</span>
+                        <input
+                          type="number"
+                          name={`sizePrice[${size}]`}
+                          min={1}
+                          step={1}
+                          value={
+                            sizePrices[size] ??
+                            (sizePreset === "TEDDY_CM"
+                              ? String(TEDDY_SIZE_PRICES[size] ?? "")
+                              : price || "")
+                          }
+                          onChange={(e) =>
+                            setSizePrices((prev) => ({
+                              ...prev,
+                              [size]: e.target.value,
+                            }))
+                          }
+                          className={fieldClass}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-ink/45">
+                    Listing shows the lowest size price. Cart charges the size the shopper picks.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
 

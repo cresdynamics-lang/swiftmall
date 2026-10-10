@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useProducts } from "@/context/ProductsContext";
+import { priceForProduct } from "@/lib/product-price";
 
 export type CartLine = { productId: string; qty: number; size?: string };
 
@@ -103,7 +104,8 @@ export function CartProvider({
     () =>
       lines.reduce((sum, l) => {
         const p = byId(l.productId);
-        return sum + (p?.price ?? 0) * l.qty;
+        if (!p) return sum;
+        return sum + priceForProduct(p, l.size) * l.qty;
       }, 0),
     [lines, byId],
   );

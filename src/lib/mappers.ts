@@ -1,4 +1,5 @@
 import type { Category as DbCategory, Product as DbProduct } from "@prisma/client";
+import { parseSizePrices } from "@/lib/product-price";
 import type { Gender, OfferTag, Product } from "@/lib/product-types";
 
 type DbProductWithCategory = DbProduct & { category?: DbCategory | null };
@@ -31,5 +32,6 @@ export function mapProduct(row: DbProductWithCategory): Product {
             : "unisex") as Gender)
       : undefined,
     sizes: row.sizes ?? [],
+    sizePrices: parseSizePrices(row.sizePrices),
   };
 }

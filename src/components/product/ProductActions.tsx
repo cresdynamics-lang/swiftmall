@@ -1,19 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSaved } from "@/context/SavedContext";
+import { formatKes } from "@/lib/format";
+import { priceForProduct } from "@/lib/product-price";
+import type { Product } from "@/lib/product-types";
 
 export function ProductActions({
-  productId,
+  product,
   stock,
   sizes = [],
 }: {
-  productId: string;
+  product: Pick<Product, "id" | "price" | "sizes" | "sizePrices">;
   stock: number;
   sizes?: string[];
 }) {
+  const productId = product.id;
   const [qty, setLocalQty] = useState(1);
   const [size, setSize] = useState(sizes[0] ?? "");
   const [sizeError, setSizeError] = useState(false);
@@ -22,6 +26,10 @@ export function ProductActions({
   const router = useRouter();
   const needsSize = sizes.length > 0;
   const outOfStock = stock <= 0;
+  const unitPrice = useMemo(
+    () => priceForProduct(product, size || undefined),
+    [product, size],
+  );
 
   function ensureSize(): boolean {
     if (needsSize && !size) {
@@ -63,12 +71,22 @@ export function ProductActions({
                     : "border-ink/15 bg-white text-ink hover:border-ink/30"
                 }`}
               >
-                {s}
+                <span className="block">{s}</span>
+                {product.sizePrices?.[s] != null ? (
+                  <span className="mt-0.5 block text-[11px] font-medium opacity-80">
+                    {formatKes(priceForProduct(product, s))}
+                  </span>
+                ) : null}
               </button>
             ))}
           </div>
           {sizeError ? (
             <p className="mt-1 text-xs text-red-600">Please choose a size</p>
+          ) : null}
+          {product.sizePrices && size ? (
+            <p className="mt-2 text-sm font-semibold text-ink">
+              Price for {size}: {formatKes(unitPrice)}
+            </p>
           ) : null}
         </div>
       ) : null}

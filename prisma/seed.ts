@@ -1,9 +1,11 @@
 import { PrismaClient, OfferTag, Gender } from "@prisma/client";
 import { SHOE_EU_SIZES, TEDDY_CM_SIZES } from "../src/lib/product-sizes";
+import { defaultTeddySizePrices } from "../src/lib/product-price";
 
 const prisma = new PrismaClient();
 const SHOE_SIZES = [...SHOE_EU_SIZES];
 const TEDDY_SIZES = [...TEDDY_CM_SIZES];
+const TEDDY_PRICES = defaultTeddySizePrices(TEDDY_SIZES);
 
 const categories = [
   {
@@ -73,6 +75,7 @@ type SeedProduct = {
   offerTag?: OfferTag;
   gender?: Gender;
   sizes?: string[];
+  sizePrices?: Record<string, number>;
 };
 
 const products: SeedProduct[] = [
@@ -250,12 +253,13 @@ const products: SeedProduct[] = [
     slug: "giant-pink-teddy-bear-1m",
     name: "Giant Pink Teddy Bear, 1m",
     category: "gifts-and-accessories",
-    price: 2800,
+    price: TEDDY_PRICES["40 cm"] ?? 1200,
     stock: 6,
     images: ["/products/p14.jpg"],
     description: "Soft giant pink teddy with Love heart patch - ideal gift.",
     featured: true,
     sizes: TEDDY_SIZES,
+    sizePrices: TEDDY_PRICES,
   },
   {
     slug: "gold-pendant-necklace-black-stone",
@@ -410,6 +414,7 @@ async function main() {
         offerTag: p.offerTag ?? OfferTag.NONE,
         gender: p.gender ?? null,
         sizes: p.sizes ?? [],
+        ...(p.sizePrices ? { sizePrices: p.sizePrices } : {}),
         categoryId,
         sortOrder: i,
         live: true,
@@ -429,6 +434,7 @@ async function main() {
         offerTag: p.offerTag ?? OfferTag.NONE,
         gender: p.gender ?? null,
         sizes: p.sizes ?? [],
+        ...(p.sizePrices ? { sizePrices: p.sizePrices } : {}),
         categoryId,
         sortOrder: i,
         live: true,
