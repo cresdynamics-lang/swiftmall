@@ -3,15 +3,15 @@
 export type SizePreset = "NONE" | "SHOE_EU" | "TEDDY_CM" | "CUSTOM";
 
 /**
- * Shoe sizes for men's (and kids) fashion: EU 26A → EU 46.
- * 26A is the smallest kids/toddler entry; then whole EU sizes through 46.
+ * Common shoe chart: EU 26A → EU 46.
+ * Admin can also add sizes below/above this (e.g. EU 22, EU 24, EU 48).
  */
 export const SHOE_EU_SIZES: string[] = [
   "EU 26A",
   ...Array.from({ length: 46 - 27 + 1 }, (_, i) => `EU ${27 + i}`),
 ];
 
-/** Gift teddy / soft-toy heights */
+/** Gift teddy / soft-toy heights — extras like 30 cm can be added in admin */
 export const TEDDY_CM_SIZES = [
   "40 cm",
   "60 cm",
@@ -37,14 +37,14 @@ export const SIZE_PRESET_OPTIONS: {
   },
   {
     value: "SHOE_EU",
-    label: "Shoes (EU 26A–46)",
-    hint: "Men's / kids shoe sizes for fashion",
+    label: "Shoes (EU)",
+    hint: "EU shoe sizes — add any size below or above the chart (e.g. 22, 24, 48)",
     options: SHOE_EU_SIZES,
   },
   {
     value: "TEDDY_CM",
     label: "Teddy / gift (cm)",
-    hint: "Flower gift teddy bear heights",
+    hint: "Teddy heights — add any cm size (e.g. 30 cm) if needed",
     options: [...TEDDY_CM_SIZES],
   },
   {
@@ -55,13 +55,59 @@ export const SIZE_PRESET_OPTIONS: {
   },
 ];
 
+/** "24", "EU24", "eu 26a" → "EU 24" / "EU 26A" */
+export function normalizeShoeSize(raw: string): string | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const m = t.match(/^(?:EU\s*)?(\d{1,2})\s*([A-Za-z])?$/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n) || n < 15 || n > 55) return null;
+  const suffix = m[2] ? m[2].toUpperCase() : "";
+  return suffix ? `EU ${n}${suffix}` : `EU ${n}`;
+}
+
+/** "30", "30cm", "30 cm" → "30 cm" */
+export function normalizeTeddySize(raw: string): string | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const m = t.match(/^(\d{1,3})\s*cm$/i) || t.match(/^(\d{1,3})$/);
+  if (!m) return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n) || n < 10 || n > 300) return null;
+  return `${n} cm`;
+}
+
+export function isShoeSizeLabel(size: string): boolean {
+  return /^EU\s*\d{1,2}[A-Za-z]?$/i.test(size.trim());
+}
+
+export function isTeddySizeLabel(size: string): boolean {
+  return /^\d{1,3}\s*cm$/i.test(size.trim());
+}
+
+function shoeSortKey(size: string): number {
+  const m = size.trim().match(/^EU\s*(\d{1,2})([A-Za-z])?$/i);
+  if (!m) return 9999;
+  return Number(m[1]) * 10 + (m[2] ? 0 : 1);
+}
+
+function teddySortKey(size: string): number {
+  const m = size.trim().match(/^(\d{1,3})\s*cm$/i);
+  return m ? Number(m[1]) : 9999;
+}
+
+export function sortSizes(sizes: string[], preset: SizePreset): string[] {
+  const copy = [...sizes];
+  if (preset === "SHOE_EU") return copy.sort((a, b) => shoeSortKey(a) - shoeSortKey(b));
+  if (preset === "TEDDY_CM") return copy.sort((a, b) => teddySortKey(a) - teddySortKey(b));
+  return copy;
+}
+
 export function detectSizePreset(sizes: string[]): SizePreset {
   if (!sizes.length) return "NONE";
-  const shoe = SHOE_EU_SIZES;
-  const teddy = TEDDY_CM_SIZES as unknown as string[];
-  const isSubset = (pool: string[]) => sizes.every((s) => pool.includes(s));
-  if (isSubset(shoe) && sizes.some((s) => shoe.includes(s))) return "SHOE_EU";
-  if (isSubset(teddy) && sizes.some((s) => teddy.includes(s))) return "TEDDY_CM";
+  if (sizes.every(isShoeSizeLabel) && sizes.some(isShoeSizeLabel)) return "SHOE_EU";
+  if (sizes.every(isTeddySizeLabel) && sizes.some(isTeddySizeLabel)) return "TEDDY_CM";
   return "CUSTOM";
 }
 
@@ -76,8 +122,16 @@ export function parseSizesFromForm(formData: FormData): string[] {
       .filter(Boolean);
   }
 
-  const selected = formData.getAll("sizes").map(String).map((s) => s.trim()).filter(Boolean);
-  if (selected.length) return selected;
+  const selected = formData
+    .getAll("sizes")
+    .map(String)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (selected.length) {
+    if (preset === "SHOE_EU") return sortSizes(selected, "SHOE_EU");
+    if (preset === "TEDDY_CM") return sortSizes(selected, "TEDDY_CM");
+    return selected;
+  }
 
   // Fallback: all options for the preset if none checked
   if (preset === "SHOE_EU") return [...SHOE_EU_SIZES];

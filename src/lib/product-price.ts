@@ -75,12 +75,32 @@ export function fromPrice(product: Pick<Product, "price" | "sizePrices">): numbe
   return Math.min(...values);
 }
 
+function teddyCmNumber(size: string): number | null {
+  const m = size.trim().match(/^(\d{1,3})\s*cm$/i);
+  return m ? Number(m[1]) : null;
+}
+
+/** Interpolate / extend teddy ladder (40 cm = 1,200 · 200 cm = 10,000). */
+export function teddyPriceForCm(cm: number): number {
+  const lo = 40;
+  const hi = 200;
+  const pLo = 1200;
+  const pHi = 10000;
+  const t = (cm - lo) / (hi - lo);
+  return roundKes(pLo + t * (pHi - pLo));
+}
+
 export function defaultTeddySizePrices(
   sizes: string[] = [...TEDDY_CM_SIZES],
 ): Record<string, number> {
   const out: Record<string, number> = {};
   for (const size of sizes) {
-    if (TEDDY_SIZE_PRICES[size] != null) out[size] = TEDDY_SIZE_PRICES[size];
+    if (TEDDY_SIZE_PRICES[size] != null) {
+      out[size] = TEDDY_SIZE_PRICES[size];
+      continue;
+    }
+    const cm = teddyCmNumber(size);
+    if (cm != null) out[size] = teddyPriceForCm(cm);
   }
   return out;
 }

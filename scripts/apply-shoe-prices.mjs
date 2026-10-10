@@ -32,11 +32,15 @@ function defaultShoeSizePrices(basePrice, sizes) {
 
 const prisma = new PrismaClient();
 
+function isShoeSize(size) {
+  return /^EU\s*\d{1,2}[A-Za-z]?$/i.test(String(size).trim());
+}
+
 const products = await prisma.product.findMany();
 let updated = 0;
 
 for (const p of products) {
-  const shoeSizes = (p.sizes ?? []).filter((s) => SHOE_EU_SIZES.includes(s));
+  const shoeSizes = (p.sizes ?? []).filter(isShoeSize);
   if (shoeSizes.length < 2) continue;
 
   const sizePrices = defaultShoeSizePrices(p.price, shoeSizes);

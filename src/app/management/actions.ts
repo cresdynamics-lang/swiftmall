@@ -127,7 +127,7 @@ export async function saveProduct(formData: FormData) {
   const live = formData.get("live") === "on";
   const offerTag = parseOfferTag(formData.get("offerTag"));
   const gender = parseGender(formData.get("gender"));
-  const { parseSizesFromForm, SHOE_EU_SIZES } = await import("@/lib/product-sizes");
+  const { parseSizesFromForm, isShoeSizeLabel } = await import("@/lib/product-sizes");
   const {
     parseSizePricesFromForm,
     defaultShoeSizePrices,
@@ -135,7 +135,7 @@ export async function saveProduct(formData: FormData) {
   } = await import("@/lib/product-price");
   const sizes = parseSizesFromForm(formData);
   let sizePrices = parseSizePricesFromForm(formData, sizes);
-  const shoeSizes = sizes.filter((s) => SHOE_EU_SIZES.includes(s));
+  const shoeSizes = sizes.filter(isShoeSizeLabel);
   if (shoeSizes.length >= 2 && (!sizePrices || sizePricesAreFlat(sizePrices))) {
     const base =
       (sizePrices ? Object.values(sizePrices)[0] : 0) || price || 0;

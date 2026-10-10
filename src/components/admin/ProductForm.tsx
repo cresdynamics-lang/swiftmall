@@ -15,6 +15,11 @@ import {
   SHOE_EU_SIZES,
   TEDDY_CM_SIZES,
   detectSizePreset,
+  isShoeSizeLabel,
+  isTeddySizeLabel,
+  normalizeShoeSize,
+  normalizeTeddySize,
+  sortSizes,
   type SizePreset,
 } from "@/lib/product-sizes";
 import {
@@ -68,18 +73,36 @@ export function ProductForm({
   const [sizePreset, setSizePreset] = useState<SizePreset>(
     product ? detectSizePreset(product.sizes ?? []) : suggestedSizePreset(categorySlug),
   );
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(() =>
+    sortSizes(product?.sizes ?? [], detectSizePreset(product?.sizes ?? [])),
+  );
+  const [extraSizes, setExtraSizes] = useState<string[]>(() => {
+    const preset = detectSizePreset(product?.sizes ?? []);
+    const chart =
+      preset === "SHOE_EU"
+        ? SHOE_EU_SIZES
+        : preset === "TEDDY_CM"
+          ? [...TEDDY_CM_SIZES]
+          : [];
+    return (product?.sizes ?? []).filter((s) => !chart.includes(s));
+  });
+  const [sizeDraft, setSizeDraft] = useState("");
   const [sizePrices, setSizePrices] = useState<Record<string, string>>(() => {
     const existing = product?.sizePrices ?? {};
     const out: Record<string, string> = {};
     for (const [size, value] of Object.entries(existing)) {
       out[size] = String(value);
     }
-    const teddyDefaults = defaultTeddySizePrices([...TEDDY_CM_SIZES]);
-    for (const size of TEDDY_CM_SIZES) {
-      if (!out[size] && teddyDefaults[size] != null) out[size] = String(teddyDefaults[size]);
+    const allSizes = product?.sizes ?? [];
+    const teddyDefaults = defaultTeddySizePrices(
+      allSizes.filter(isTeddySizeLabel).length
+        ? allSizes.filter(isTeddySizeLabel)
+        : [...TEDDY_CM_SIZES],
+    );
+    for (const [size, value] of Object.entries(teddyDefaults)) {
+      if (!out[size]) out[size] = String(value);
     }
-    const shoeSizes = (product?.sizes ?? []).filter((s) => SHOE_EU_SIZES.includes(s));
+    const shoeSizes = allSizes.filter(isShoeSizeLabel);
     const base = product?.price ?? 0;
     if (shoeSizes.length && base > 0) {
       const scaled = defaultShoeSizePrices(base, shoeSizes);
@@ -122,6 +145,10 @@ export function ProductForm({
   });
 
   const presetMeta = SIZE_PRESET_OPTIONS.find((o) => o.value === sizePreset);
+  const sizeChartOptions = useMemo(() => {
+    const base = presetMeta?.options ?? [];
+    return sortSizes([...new Set([...base, ...extraSizes, ...selectedSizes])], sizePreset);
+  }, [presetMeta?.options, extraSizes, selectedSizes, sizePreset]);
   const subOptions = CATEGORY_SUB_OPTIONS[categorySlug] ?? [];
   const fashionGender = needsGender(categorySlug);
 
@@ -160,7 +187,7 @@ export function ProductForm({
   function seedSizePrices(sizes: string[], fallback?: number) {
     setSizePrices((prev) => {
       const out = { ...prev };
-      const teddyDefaults = defaultTeddySizePrices([...TEDDY_CM_SIZES]);
+      const teddyDefaults = defaultTeddySizePrices(sizes.filter(isTeddySizeLabel));
       for (const size of sizes) {
         if (out[size]) continue;
         if (teddyDefaults[size] != null) out[size] = String(teddyDefaults[size]);
@@ -172,13 +199,17 @@ export function ProductForm({
 
   function onPresetChange(next: SizePreset) {
     setSizePreset(next);
+    setSizeDraft("");
     const meta = SIZE_PRESET_OPTIONS.find((o) => o.value === next);
     if (next === "NONE") {
       setSelectedSizes([]);
+      setExtraSizes([]);
       setCustomSizes("");
     } else if (next === "CUSTOM") {
       setSelectedSizes([]);
+      setExtraSizes([]);
     } else if (meta?.options.length) {
+      setExtraSizes([]);
       setSelectedSizes([...meta.options]);
       if (next === "TEDDY_CM") {
         seedSizePrices([...TEDDY_CM_SIZES]);
@@ -194,13 +225,55 @@ export function ProductForm({
 
   function toggleSize(size: string) {
     setSelectedSizes((prev) => {
-      const next = prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size];
-      if (!prev.includes(size)) {
+      const removing = prev.includes(size);
+      const next = removing
+        ? prev.filter((s) => s !== size)
+        : sortSizes([...prev, size], sizePreset);
+      if (!removing) {
         const base = Number(price) || product?.price || 0;
         if (sizePreset === "SHOE_EU") applyShoeScale([size], base);
         else seedSizePrices([size], base);
       }
       return next;
+    });
+  }
+
+  function addDynamicSize() {
+    const normalized =
+      sizePreset === "SHOE_EU"
+        ? normalizeShoeSize(sizeDraft)
+        : sizePreset === "TEDDY_CM"
+          ? normalizeTeddySize(sizeDraft)
+          : sizeDraft.trim() || null;
+    if (!normalized) return;
+    const chart = presetMeta?.options ?? [];
+    if (!chart.includes(normalized)) {
+      setExtraSizes((prev) =>
+        prev.includes(normalized)
+          ? prev
+          : sortSizes([...prev, normalized], sizePreset),
+      );
+    }
+    setSelectedSizes((prev) =>
+      prev.includes(normalized)
+        ? prev
+        : sortSizes([...prev, normalized], sizePreset),
+    );
+    const base = Number(price) || product?.price || 0;
+    if (sizePreset === "SHOE_EU") applyShoeScale([normalized], base);
+    else seedSizePrices([normalized], base);
+    setSizeDraft("");
+  }
+
+  function removeExtraSize(size: string) {
+    const chart = presetMeta?.options ?? [];
+    if (chart.includes(size)) return;
+    setExtraSizes((prev) => prev.filter((s) => s !== size));
+    setSelectedSizes((prev) => prev.filter((s) => s !== size));
+    setSizePrices((prev) => {
+      const out = { ...prev };
+      delete out[size];
+      return out;
     });
   }
 
@@ -485,7 +558,10 @@ export function ProductForm({
                     type="button"
                     className="font-semibold text-ink underline"
                     onClick={() => {
-                      const all = [...(presetMeta?.options ?? [])];
+                      const all = sortSizes(
+                        [...new Set([...(presetMeta?.options ?? []), ...extraSizes])],
+                        sizePreset,
+                      );
                       setSelectedSizes(all);
                       const base = Number(price) || product?.price || 0;
                       if (sizePreset === "SHOE_EU") applyShoeScale(all, base, true);
@@ -504,12 +580,13 @@ export function ProductForm({
                 </div>
               </div>
               <div className="flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
-                {(presetMeta?.options ?? []).map((size) => {
+                {sizeChartOptions.map((size) => {
                   const on = selectedSizes.includes(size);
+                  const isExtra = !(presetMeta?.options ?? []).includes(size);
                   return (
                     <label
                       key={size}
-                      className={`cursor-pointer rounded-md border px-2.5 py-1.5 text-xs font-semibold ${
+                      className={`inline-flex cursor-pointer items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-semibold ${
                         on
                           ? "border-brand bg-brand/20 text-ink"
                           : "border-ink/15 bg-white text-ink/55 hover:border-ink/30"
@@ -524,10 +601,59 @@ export function ProductForm({
                         className="sr-only"
                       />
                       {size}
+                      {isExtra ? (
+                        <button
+                          type="button"
+                          className="ml-0.5 text-ink/40 hover:text-ink"
+                          aria-label={`Remove ${size}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            removeExtraSize(size);
+                          }}
+                        >
+                          ×
+                        </button>
+                      ) : null}
                     </label>
                   );
                 })}
               </div>
+              <div className="mt-3 flex flex-wrap items-end gap-2">
+                <div className="min-w-[10rem] flex-1">
+                  <label className="mb-1 block text-xs font-medium text-ink/70">
+                    Add size
+                  </label>
+                  <input
+                    type="text"
+                    value={sizeDraft}
+                    onChange={(e) => setSizeDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addDynamicSize();
+                      }
+                    }}
+                    placeholder={
+                      sizePreset === "SHOE_EU"
+                        ? "e.g. 22, 24, EU 48"
+                        : "e.g. 30, 50 cm"
+                    }
+                    className={fieldClass}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addDynamicSize}
+                  className="rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white hover:bg-ink/90"
+                >
+                  Add
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-ink/45">
+                {sizePreset === "SHOE_EU"
+                  ? "Add kids sizes below the chart (22, 24…) or larger (47, 48…). Price row appears when selected."
+                  : "Add heights not on the chart (e.g. 30 cm). Price is estimated; edit as needed."}
+              </p>
               {(sizePreset === "TEDDY_CM" || sizePreset === "SHOE_EU") &&
               selectedSizes.length > 0 ? (
                 <div className="mt-4">
@@ -548,7 +674,7 @@ export function ProductForm({
                     ) : null}
                   </div>
                   <div className="grid max-h-64 gap-2 overflow-y-auto sm:grid-cols-2">
-                    {selectedSizes.map((size) => (
+                    {sortSizes(selectedSizes, sizePreset).map((size) => (
                       <label
                         key={size}
                         className="flex items-center gap-2 text-xs font-medium text-ink/70"
