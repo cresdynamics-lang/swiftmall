@@ -143,27 +143,59 @@ export async function saveProduct(formData: FormData) {
   }
 
   const { MAX_PRODUCT_IMAGES } = await import("@/lib/product-types");
-  const { saveProductImageFiles } = await import("@/lib/product-image");
-  const keptImages = formData
+  const { saveProductImageFile, saveProductImageFiles } = await import(
+    "@/lib/product-image"
+  );
+
+  const keepDisplay = String(formData.get("keepDisplay") ?? "").trim();
+  const keepAngles = formData
+    .getAll("keepAngles")
+    .map((v) => String(v).trim())
+    .filter((v) => v.startsWith("/") && !v.includes(".."));
+
+  // Legacy combined keepImages (display first, then angles)
+  const legacyKept = formData
     .getAll("keepImages")
     .map((v) => String(v).trim())
     .filter((v) => v.startsWith("/") && !v.includes(".."));
-  const newFiles = formData
-    .getAll("imageFiles")
-    .filter((v): v is File => v instanceof File && v.size > 0);
-  // Back-compat: older form field name
-  const single = formData.get("imageFile");
-  if (single instanceof File && single.size > 0) newFiles.push(single);
 
-  if (keptImages.length + newFiles.length > MAX_PRODUCT_IMAGES) {
-    throw new Error(`You can upload up to ${MAX_PRODUCT_IMAGES} product photos`);
+  const displayFile =
+    formData.get("displayImageFile") instanceof File
+      ? (formData.get("displayImageFile") as File)
+      : formData.get("imageFile") instanceof File
+        ? (formData.get("imageFile") as File)
+        : null;
+  const angleFiles = [
+    ...formData.getAll("angleFiles"),
+    ...formData.getAll("imageFiles"),
+  ].filter((v): v is File => v instanceof File && v.size > 0);
+
+  let displayPath: string | null =
+    keepDisplay.startsWith("/") && !keepDisplay.includes("..")
+      ? keepDisplay
+      : legacyKept[0] ?? null;
+  if (displayFile && displayFile.size > 0) {
+    displayPath = (await saveProductImageFile(displayFile)) ?? displayPath;
   }
 
-  const uploaded = await saveProductImageFiles(newFiles);
-  const images = [...keptImages, ...uploaded];
+  const baseAngles =
+    keepAngles.length > 0
+      ? keepAngles
+      : legacyKept.length > 1
+        ? legacyKept.slice(1)
+        : [];
+  const uploadedAngles = await saveProductImageFiles(angleFiles);
+  const images = [
+    ...(displayPath ? [displayPath] : []),
+    ...baseAngles,
+    ...uploadedAngles,
+  ].slice(0, MAX_PRODUCT_IMAGES);
 
   if (!images.length) {
-    throw new Error("Upload at least one product photo before saving");
+    throw new Error("Upload a display image before saving");
+  }
+  if (!displayPath) {
+    throw new Error("Upload a display image before saving");
   }
 
   const data = {

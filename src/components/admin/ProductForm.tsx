@@ -15,7 +15,7 @@ import {
   detectSizePreset,
   type SizePreset,
 } from "@/lib/product-sizes";
-import { angleLabel } from "@/lib/product-angles";
+import { extraAngleLabel } from "@/lib/product-angles";
 import {
   MAX_PRODUCT_IMAGES,
   OFFER_TAG_OPTIONS,
@@ -23,7 +23,9 @@ import {
   type Product,
 } from "@/lib/product-types";
 
-type PendingAngle = { key: string; file: File; url: string };
+type PendingFile = { key: string; file: File; url: string };
+
+const MAX_ANGLES = MAX_PRODUCT_IMAGES - 1;
 
 type CategoryOption = { slug: string; name: string };
 
@@ -63,16 +65,20 @@ export function ProductForm({
       ? (product?.sizes ?? []).join(", ")
       : "",
   );
-  const [keptImages, setKeptImages] = useState<string[]>(product?.images ?? []);
-  const [pendingAngles, setPendingAngles] = useState<PendingAngle[]>([]);
-  const [fileInputKey, setFileInputKey] = useState(0);
+  const existing = product?.images ?? [];
+  const [keepDisplay, setKeepDisplay] = useState(existing[0] ?? "");
+  const [pendingDisplay, setPendingDisplay] = useState<PendingFile | null>(null);
+  const [keepAngles, setKeepAngles] = useState<string[]>(existing.slice(1));
+  const [pendingAngles, setPendingAngles] = useState<PendingFile[]>([]);
+  const [displayInputKey, setDisplayInputKey] = useState(0);
+  const [anglesInputKey, setAnglesInputKey] = useState(0);
 
-  const allPreviews = useMemo(
-    () => [...keptImages, ...pendingAngles.map((p) => p.url)],
-    [keptImages, pendingAngles],
+  const displayPreview = pendingDisplay?.url || keepDisplay;
+  const anglePreviews = useMemo(
+    () => [...keepAngles, ...pendingAngles.map((p) => p.url)],
+    [keepAngles, pendingAngles],
   );
-  const previewUrl = allPreviews[0] ?? "";
-  const slotsLeft = MAX_PRODUCT_IMAGES - keptImages.length - pendingAngles.length;
+  const anglesLeft = MAX_ANGLES - keepAngles.length - pendingAngles.length;
 
   const priceNum = Number(price) || 0;
   const oldNum = oldPrice ? Number(oldPrice) : undefined;
@@ -125,11 +131,29 @@ export function ProductForm({
     );
   }
 
-  function onFilesSelected(fileList: FileList | null) {
+  function onDisplaySelected(file: File | null) {
+    if (!file) return;
+    if (pendingDisplay) URL.revokeObjectURL(pendingDisplay.url);
+    setPendingDisplay({
+      key: `${file.name}-${file.lastModified}`,
+      file,
+      url: URL.createObjectURL(file),
+    });
+    setDisplayInputKey((k) => k + 1);
+  }
+
+  function clearDisplay() {
+    if (pendingDisplay) URL.revokeObjectURL(pendingDisplay.url);
+    setPendingDisplay(null);
+    setKeepDisplay("");
+    setDisplayInputKey((k) => k + 1);
+  }
+
+  function onAnglesSelected(fileList: FileList | null) {
     if (!fileList?.length) return;
-    const room = MAX_PRODUCT_IMAGES - keptImages.length - pendingAngles.length;
+    const room = MAX_ANGLES - keepAngles.length - pendingAngles.length;
     if (room <= 0) return;
-    const next: PendingAngle[] = [];
+    const next: PendingFile[] = [];
     for (const file of Array.from(fileList).slice(0, room)) {
       next.push({
         key: `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
@@ -138,14 +162,14 @@ export function ProductForm({
       });
     }
     setPendingAngles((prev) => [...prev, ...next]);
-    setFileInputKey((k) => k + 1);
+    setAnglesInputKey((k) => k + 1);
   }
 
-  function removeKept(index: number) {
-    setKeptImages((prev) => prev.filter((_, i) => i !== index));
+  function removeKeepAngle(index: number) {
+    setKeepAngles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function removePending(index: number) {
+  function removePendingAngle(index: number) {
     setPendingAngles((prev) => {
       const target = prev[index];
       if (target) URL.revokeObjectURL(target.url);
@@ -153,8 +177,8 @@ export function ProductForm({
     });
   }
 
-  function moveKept(index: number, dir: -1 | 1) {
-    setKeptImages((prev) => {
+  function moveKeepAngle(index: number, dir: -1 | 1) {
+    setKeepAngles((prev) => {
       const next = [...prev];
       const j = index + dir;
       if (j < 0 || j >= next.length) return prev;
@@ -163,22 +187,15 @@ export function ProductForm({
     });
   }
 
-  function makeKeptMain(index: number) {
-    setKeptImages((prev) => {
-      if (index <= 0 || index >= prev.length) return prev;
-      const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.unshift(item);
-      return next;
-    });
-  }
-
   return (
     <form action={saveProduct} className="grid gap-6 lg:grid-cols-[1fr_280px]">
       {product?.id ? <input type="hidden" name="id" value={product.id} /> : null}
       <input type="hidden" name="sizePreset" value={sizePreset} />
-      {keptImages.map((src) => (
-        <input key={src} type="hidden" name="keepImages" value={src} />
+      {keepDisplay && !pendingDisplay ? (
+        <input type="hidden" name="keepDisplay" value={keepDisplay} />
+      ) : null}
+      {keepAngles.map((src) => (
+        <input key={src} type="hidden" name="keepAngles" value={src} />
       ))}
 
       <div className="space-y-4 rounded-xl bg-white p-5 ring-1 ring-ink/8">
@@ -445,59 +462,91 @@ export function ProductForm({
         </div>
 
         <div className="space-y-3 rounded-lg border border-ink/10 bg-ink/[0.02] p-4">
-          <Field label="Product photos (angles) *">
+          <h3 className="text-sm font-bold text-ink">1. Display image *</h3>
+          <p className="text-xs text-ink/50">
+            Main photo shown on listings, search, and as the first product-page view. JPG /
+            PNG / WebP, max 5MB.
+          </p>
+          <Field label="Upload display image">
             <input
-              key={fileInputKey}
+              key={displayInputKey}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className={fieldClass}
+              onChange={(e) => onDisplaySelected(e.target.files?.[0] ?? null)}
+            />
+          </Field>
+          {displayPreview ? (
+            <div className="relative w-36 overflow-hidden rounded-md bg-white ring-1 ring-ink/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayPreview}
+                alt=""
+                className="aspect-square w-full object-contain p-1"
+              />
+              <span className="absolute left-1 top-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                Display{pendingDisplay ? " · New" : ""}
+              </span>
+              <div className="flex border-t border-ink/8 p-1.5">
+                <button
+                  type="button"
+                  onClick={clearDisplay}
+                  className="ml-auto text-[10px] font-semibold text-red-700 underline"
+                >
+                  Remove
+                </button>
+              </div>
+              {pendingDisplay ? <PendingFileInput name="displayImageFile" file={pendingDisplay.file} /> : null}
+            </div>
+          ) : (
+            <p className="text-xs text-amber-800">Required — upload a display image before saving.</p>
+          )}
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-ink/10 bg-ink/[0.02] p-4">
+          <h3 className="text-sm font-bold text-ink">2. Angle photos</h3>
+          <p className="text-xs text-ink/50">
+            Extra views shoppers can switch through: Side, Back, Detail… Optional. Up to{" "}
+            {MAX_ANGLES} angles.
+          </p>
+          <Field label="Upload angle photos">
+            <input
+              key={anglesInputKey}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               multiple
-              disabled={slotsLeft <= 0}
+              disabled={anglesLeft <= 0}
               className={fieldClass}
-              onChange={(e) => onFilesSelected(e.target.files)}
+              onChange={(e) => onAnglesSelected(e.target.files)}
             />
           </Field>
-          <p className="text-xs text-ink/50">
-            Upload set angles in order: Front, Side, Back, Detail… JPG / PNG / WebP, max 5MB
-            each, up to {MAX_PRODUCT_IMAGES}. Front is the listing image; shoppers switch
-            angles on the product page.
-          </p>
 
-          {allPreviews.length ? (
+          {anglePreviews.length ? (
             <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {keptImages.map((src, i) => (
+              {keepAngles.map((src, i) => (
                 <li
-                  key={`kept-${src}`}
+                  key={`angle-${src}`}
                   className="relative overflow-hidden rounded-md bg-white ring-1 ring-ink/10"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="aspect-square w-full object-contain p-1" />
                   <span className="absolute left-1 top-1 rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold text-brand">
-                    {angleLabel(i)}
-                    {i === 0 ? " · Main" : ""}
+                    {extraAngleLabel(i)}
                   </span>
                   <div className="flex flex-wrap gap-1 border-t border-ink/8 p-1.5">
                     {i > 0 ? (
                       <button
                         type="button"
-                        onClick={() => makeKeptMain(i)}
-                        className="text-[10px] font-semibold text-ink underline"
-                      >
-                        Make main
-                      </button>
-                    ) : null}
-                    {i > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => moveKept(i, -1)}
+                        onClick={() => moveKeepAngle(i, -1)}
                         className="text-[10px] font-semibold text-ink/55 underline"
                       >
                         ←
                       </button>
                     ) : null}
-                    {i < keptImages.length - 1 ? (
+                    {i < keepAngles.length - 1 ? (
                       <button
                         type="button"
-                        onClick={() => moveKept(i, 1)}
+                        onClick={() => moveKeepAngle(i, 1)}
                         className="text-[10px] font-semibold text-ink/55 underline"
                       >
                         →
@@ -505,7 +554,7 @@ export function ProductForm({
                     ) : null}
                     <button
                       type="button"
-                      onClick={() => removeKept(i)}
+                      onClick={() => removeKeepAngle(i)}
                       className="ml-auto text-[10px] font-semibold text-red-700 underline"
                     >
                       Remove
@@ -513,9 +562,7 @@ export function ProductForm({
                   </div>
                 </li>
               ))}
-              {pendingAngles.map((item, i) => {
-                const angleIndex = keptImages.length + i;
-                return (
+              {pendingAngles.map((item, i) => (
                 <li
                   key={item.key}
                   className="relative overflow-hidden rounded-md bg-white ring-1 ring-brand/40"
@@ -523,28 +570,27 @@ export function ProductForm({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.url} alt="" className="aspect-square w-full object-contain p-1" />
                   <span className="absolute left-1 top-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-ink">
-                    {angleLabel(angleIndex)} · New
+                    {extraAngleLabel(keepAngles.length + i)} · New
                   </span>
                   <div className="flex border-t border-ink/8 p-1.5">
                     <button
                       type="button"
-                      onClick={() => removePending(i)}
+                      onClick={() => removePendingAngle(i)}
                       className="ml-auto text-[10px] font-semibold text-red-700 underline"
                     >
                       Remove
                     </button>
                   </div>
-                  <PendingFileInput file={item.file} />
+                  <PendingFileInput name="angleFiles" file={item.file} />
                 </li>
-              );
-              })}
+              ))}
             </ul>
           ) : (
-            <p className="text-xs text-amber-800">No photos yet — upload at least one before saving.</p>
+            <p className="text-xs text-ink/45">No angle photos yet — optional.</p>
           )}
           <p className="text-xs text-ink/45">
-            {allPreviews.length}/{MAX_PRODUCT_IMAGES} photos
-            {slotsLeft <= 0 ? " — limit reached." : ` · ${slotsLeft} more can be added.`}
+            {anglePreviews.length}/{MAX_ANGLES} angles
+            {anglesLeft <= 0 ? " — limit reached." : ` · ${anglesLeft} more can be added.`}
           </p>
         </div>
 
@@ -589,25 +635,32 @@ export function ProductForm({
         <p className="text-xs font-bold uppercase tracking-wide text-ink/45">
           Storefront preview
         </p>
-        {previewUrl ? (
+        {displayPreview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={previewUrl}
+            src={displayPreview}
             alt=""
             className="mt-3 h-36 w-full rounded-md object-contain bg-ink/[0.03]"
           />
-        ) : null}
-        {allPreviews.length > 1 ? (
-          <div className="mt-2 grid grid-cols-4 gap-1">
-            {allPreviews.slice(0, 4).map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={`${src}-${i}`}
-                src={src}
-                alt=""
-                className="aspect-square rounded object-cover ring-1 ring-ink/10"
-              />
-            ))}
+        ) : (
+          <p className="mt-3 text-xs text-ink/45">No display image yet</p>
+        )}
+        {anglePreviews.length ? (
+          <div className="mt-2">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-ink/40">
+              Angles
+            </p>
+            <div className="grid grid-cols-4 gap-1">
+              {anglePreviews.slice(0, 4).map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={`${src}-${i}`}
+                  src={src}
+                  alt=""
+                  className="aspect-square rounded object-cover ring-1 ring-ink/10"
+                />
+              ))}
+            </div>
           </div>
         ) : null}
         <p className="mt-3 line-clamp-2 text-sm font-semibold">{name || "Product name"}</p>
@@ -683,11 +736,11 @@ function Field({
 }
 
 /** Attach a File to FormData — input.files is not assignable via React props. */
-function PendingFileInput({ file }: { file: File }) {
+function PendingFileInput({ name, file }: { name: string; file: File }) {
   return (
     <input
       type="file"
-      name="imageFiles"
+      name={name}
       className="hidden"
       ref={(el) => {
         if (!el || el.files?.[0] === file) return;

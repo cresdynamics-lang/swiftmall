@@ -1,6 +1,6 @@
-/** Ordered angle labels for product photos (index 0 = listing / front). */
+/** Storefront labels: index 0 = display/listing photo, then extra angles. */
 export const PRODUCT_ANGLE_LABELS = [
-  "Front",
+  "Display",
   "Side",
   "Back",
   "Detail",
@@ -10,8 +10,15 @@ export const PRODUCT_ANGLE_LABELS = [
   "Extra",
 ] as const;
 
+/** Labels for the admin “extra angles” section only (not the display image). */
+export const EXTRA_ANGLE_LABELS = PRODUCT_ANGLE_LABELS.slice(1);
+
 export function angleLabel(index: number): string {
   return PRODUCT_ANGLE_LABELS[index] ?? `Angle ${index + 1}`;
+}
+
+export function extraAngleLabel(index: number): string {
+  return EXTRA_ANGLE_LABELS[index] ?? `Angle ${index + 2}`;
 }
 
 /** Mens/Womens filters also include unisex items. */
