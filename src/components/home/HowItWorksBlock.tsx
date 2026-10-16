@@ -29,12 +29,17 @@ export function HowItWorksBlock() {
           Full guide →
         </Link>
       </div>
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-4">
         {steps.map((s) => (
-          <div key={s.n} className="rounded-xl bg-white p-5 ring-1 ring-ink/8">
-            <p className="font-display text-2xl font-bold text-brand">{s.n}</p>
-            <p className="mt-2 font-semibold text-ink">{s.title}</p>
-            <p className="mt-1 text-sm text-ink/60">{s.text}</p>
+          <div
+            key={s.n}
+            className="min-w-0 rounded-xl bg-white p-2.5 ring-1 ring-ink/8 sm:p-5"
+          >
+            <p className="font-display text-lg font-bold text-brand sm:text-2xl">{s.n}</p>
+            <p className="mt-1 text-xs font-semibold leading-tight text-ink sm:mt-2 sm:text-base">
+              {s.title}
+            </p>
+            <p className="mt-1 text-[10px] leading-snug text-ink/60 sm:text-sm">{s.text}</p>
           </div>
         ))}
       </div>

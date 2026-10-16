@@ -34,15 +34,19 @@ export function HomeTrustStrip() {
 
   return (
     <section className="border-y border-ink/8 bg-white">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-ink/8 sm:grid-cols-3 sm:divide-x sm:divide-y-0 lg:grid-cols-none lg:flex">
+      <div className="mx-auto flex max-w-7xl divide-x divide-ink/8">
         {items.map((item) => (
           <Link
             key={item.title}
             href={item.href}
-            className="flex-1 px-4 py-3 text-center hover:bg-page sm:py-4"
+            className="min-w-0 flex-1 px-1.5 py-2.5 text-center hover:bg-page sm:px-3 sm:py-4"
           >
-            <p className="text-sm font-semibold text-ink">{item.title}</p>
-            <p className="mt-0.5 text-xs text-ink/55">{item.line}</p>
+            <p className="text-[10px] font-semibold leading-tight text-ink sm:text-sm">
+              {item.title}
+            </p>
+            <p className="mt-0.5 text-[9px] leading-tight text-ink/55 sm:text-xs">
+              {item.line}
+            </p>
           </Link>
         ))}
       </div>
