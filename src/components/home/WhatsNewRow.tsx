@@ -12,7 +12,7 @@ export function WhatsNewRow() {
   if (!items.length) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
+    <section id="whats-new" className="mx-auto max-w-7xl scroll-mt-36 px-3 py-6 sm:scroll-mt-40 sm:px-4">
       <div className="mb-3 flex items-end justify-between gap-2">
         <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">What&apos;s New</h2>
         <Link href="/deals?tab=new" className="text-sm font-semibold text-ink hover:underline">

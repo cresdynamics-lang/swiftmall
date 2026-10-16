@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
-import type { Category } from "@/lib/categories";
+import { sectionIdForCategory, type Category } from "@/lib/categories";
 
 /** Two rows on desktop (6×2); three columns on small screens */
 const MAX_ITEMS = 12;
@@ -18,7 +18,10 @@ export function CategoryRow({ category }: { category: Category }) {
   const items = byCategory(category.slug, gender).slice(0, MAX_ITEMS);
 
   return (
-    <section className="mx-auto max-w-7xl px-3 py-5 sm:px-4">
+    <section
+      id={sectionIdForCategory(category.slug)}
+      className="mx-auto max-w-7xl scroll-mt-36 px-3 py-5 sm:scroll-mt-40 sm:px-4"
+    >
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">

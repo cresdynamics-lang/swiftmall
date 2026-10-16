@@ -35,8 +35,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <>
       <TopStrip />
-      <Navbar onOpenMenu={() => setMenuOpen(true)} />
-      <MarketNavStrip />
+      <div className="sticky top-0 z-50">
+        <Navbar onOpenMenu={() => setMenuOpen(true)} />
+        <MarketNavStrip />
+      </div>
       <MobileDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0">{children}</main>
       <Footer />

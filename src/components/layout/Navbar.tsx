@@ -29,7 +29,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
   const countLabel = ready ? itemCount : 0;
 
   return (
-    <header className="sticky top-0 z-50 bg-ink text-white shadow-md">
+    <header className="bg-ink text-white shadow-md">
       <div className="relative mx-auto flex max-w-[1600px] items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-2.5 lg:px-6">
         <Logo className="max-w-[120px] shrink-0 sm:max-w-[160px] lg:max-w-none" />
 

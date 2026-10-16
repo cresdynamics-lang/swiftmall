@@ -4,6 +4,11 @@ export type CategoryChild = {
   children?: { slug: string; name: string }[];
 };
 
+/** Anchor id for homepage department sections + sticky nav scroll-spy. */
+export function sectionIdForCategory(slug: string) {
+  return `department-${slug}`;
+}
+
 export type Category = {
   slug: string;
   name: string;

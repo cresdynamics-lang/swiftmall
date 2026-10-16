@@ -45,7 +45,7 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
 
   if (!flashEndsAt || clock?.ended) {
     return (
-      <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
+      <section id="flash-deals" className="mx-auto max-w-7xl scroll-mt-36 px-3 py-6 sm:scroll-mt-40 sm:px-4">
         <div className="rounded-[18px] bg-ink px-4 py-8 text-center text-white sm:px-6">
           <h2 className="font-display text-xl font-bold">⚡ Flash Sale</h2>
           <p className="mt-2 text-sm text-white/60">New deals soon</p>
@@ -63,7 +63,7 @@ export function FlashDeals({ flashEndsAt }: { flashEndsAt: string | null }) {
   if (deals.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
+    <section id="flash-deals" className="mx-auto max-w-7xl scroll-mt-36 px-3 py-6 sm:scroll-mt-40 sm:px-4">
       <div className="rounded-[18px] bg-ink px-3 py-4 text-white sm:px-5 sm:py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
