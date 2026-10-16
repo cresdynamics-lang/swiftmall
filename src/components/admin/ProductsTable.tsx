@@ -3,7 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { deleteProduct, toggleProductLive } from "@/app/management/actions";
+import {
+  deleteProduct,
+  duplicateProduct,
+  toggleProductLive,
+} from "@/app/management/actions";
 import { formatKes } from "@/lib/format";
 import type { Product } from "@/lib/product-types";
 
@@ -135,13 +139,22 @@ export function ProductsTable({
                     />
                   </button>
                 </td>
-                <td className="px-3 py-3 text-right">
+                <td className="px-3 py-3 text-right whitespace-nowrap">
                   <Link
                     href={`/management/products/${p.id}`}
                     className="mr-3 text-sm font-semibold underline"
                   >
                     Edit
                   </Link>
+                  <form action={duplicateProduct} className="mr-3 inline">
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      type="submit"
+                      className="text-sm font-semibold text-ink/70 underline hover:text-ink"
+                    >
+                      Duplicate
+                    </button>
+                  </form>
                   <form action={deleteProduct} className="inline">
                     <input type="hidden" name="id" value={p.id} />
                     <button type="submit" className="text-sm text-red-600 hover:underline">

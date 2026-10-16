@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { submitCheckout } from "@/app/checkout/actions";
+import { MetaInitiateCheckout } from "@/components/analytics/MetaInitiateCheckout";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
 import { Logo } from "@/components/layout/Logo";
@@ -82,6 +83,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-page">
+      {itemCount > 0 ? <MetaInitiateCheckout /> : null}
       <header className="border-b border-ink/10 bg-ink">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <Logo />

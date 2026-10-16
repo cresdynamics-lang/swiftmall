@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { trackAddToWishlist } from "@/lib/meta-pixel";
 
 type SavedContextValue = {
   ids: string[];
@@ -40,11 +41,13 @@ export function SavedProvider({ children }: { children: ReactNode }) {
   }, [ids, hydrated]);
 
   const toggle = useCallback((productId: string) => {
-    setIds((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId],
-    );
+    setIds((prev) => {
+      if (prev.includes(productId)) {
+        return prev.filter((id) => id !== productId);
+      }
+      trackAddToWishlist({ contentIds: [productId] });
+      return [...prev, productId];
+    });
   }, []);
 
   const has = useCallback((productId: string) => ids.includes(productId), [ids]);

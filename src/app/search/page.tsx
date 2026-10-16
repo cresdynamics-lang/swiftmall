@@ -1,15 +1,20 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
 import { useProducts } from "@/context/ProductsContext";
+import { trackSearch } from "@/lib/meta-pixel";
 
 function SearchResults() {
   const params = useSearchParams();
   const q = params.get("q") ?? "";
   const { products, search } = useProducts();
   const results = q.trim().length >= 2 ? search(q, 48) : products.slice(0, 12);
+
+  useEffect(() => {
+    if (q.trim().length >= 2) trackSearch(q.trim());
+  }, [q]);
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">

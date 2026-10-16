@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import { MetaPageView } from "@/components/analytics/MetaPageView";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { Providers } from "@/components/Providers";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { listStoreCategories } from "@/lib/categories-db";
@@ -52,7 +54,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
+        <MetaPixel />
         <Providers products={products} settings={settings} categories={categories}>
+          <MetaPageView />
           <SiteShell>{children}</SiteShell>
         </Providers>
       </body>

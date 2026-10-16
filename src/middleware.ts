@@ -14,5 +14,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Keep SEO files out of any future broad matchers
   matcher: ["/admin", "/admin/:path*"],
 };

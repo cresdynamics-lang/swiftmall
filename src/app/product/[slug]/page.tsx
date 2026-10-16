@@ -9,6 +9,7 @@ import {
   ShopOtherDepartments,
 } from "@/components/product/ProductExtras";
 import { ProductGallery } from "@/components/product/ProductGallery";
+import { MetaViewContent } from "@/components/analytics/MetaViewContent";
 import { TrackView } from "@/components/product/TrackView";
 import { business } from "@/lib/business";
 import { listStoreCategories, getStoreCategory } from "@/lib/categories-db";
@@ -115,6 +116,7 @@ export default async function ProductPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <TrackView productId={product.id} />
+      <MetaViewContent product={product} />
       <nav className="mb-4 text-sm text-ink/50" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-ink">
           Home

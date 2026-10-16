@@ -1,12 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSaved } from "@/context/SavedContext";
 import { formatKes } from "@/lib/format";
 import { priceForProduct } from "@/lib/product-price";
 import type { Product } from "@/lib/product-types";
+
+function initialSize(sizes: string[], fromQuery: string | null): string {
+  if (fromQuery && sizes.includes(fromQuery)) return fromQuery;
+  return sizes[0] ?? "";
+}
 
 export function ProductActions({
   product,
@@ -18,8 +23,11 @@ export function ProductActions({
   sizes?: string[];
 }) {
   const productId = product.id;
+  const searchParams = useSearchParams();
   const [qty, setLocalQty] = useState(1);
-  const [size, setSize] = useState(sizes[0] ?? "");
+  const [size, setSize] = useState(() =>
+    initialSize(sizes, searchParams.get("size")),
+  );
   const [sizeError, setSizeError] = useState(false);
   const { add } = useCart();
   const { has, toggle } = useSaved();

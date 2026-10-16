@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useProducts } from "@/context/ProductsContext";
+import { metaContentId, trackAddToCart } from "@/lib/meta-pixel";
 import { priceForProduct } from "@/lib/product-price";
 
 export type CartLine = { productId: string; qty: number; size?: string };
@@ -64,17 +65,29 @@ export function CartProvider({
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
   }, [lines, hydrated]);
 
-  const add = useCallback((productId: string, qty = 1, size?: string) => {
-    setLines((prev) => {
-      const existing = prev.find((l) => sameLine(l, productId, size));
-      if (existing) {
-        return prev.map((l) =>
-          sameLine(l, productId, size) ? { ...l, qty: l.qty + qty } : l,
-        );
+  const add = useCallback(
+    (productId: string, qty = 1, size?: string) => {
+      setLines((prev) => {
+        const existing = prev.find((l) => sameLine(l, productId, size));
+        if (existing) {
+          return prev.map((l) =>
+            sameLine(l, productId, size) ? { ...l, qty: l.qty + qty } : l,
+          );
+        }
+        return [...prev, { productId, qty, size: size || undefined }];
+      });
+      const p = byId(productId);
+      if (p) {
+        const unit = priceForProduct(p, size);
+        trackAddToCart({
+          contentIds: [metaContentId(productId, size)],
+          contentName: p.name,
+          value: unit * qty,
+        });
       }
-      return [...prev, { productId, qty, size: size || undefined }];
-    });
-  }, []);
+    },
+    [byId],
+  );
 
   const setQty = useCallback((productId: string, qty: number, size?: string) => {
     setLines((prev) => {

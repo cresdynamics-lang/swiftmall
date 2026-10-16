@@ -273,6 +273,59 @@ export async function deleteProduct(formData: FormData) {
   redirect("/management/products");
 }
 
+/** Clone a product (same photos/sizes/prices) for quick CRUD copies. */
+export async function duplicateProduct(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) throw new Error("Product id required");
+
+  const source = await prisma.product.findUnique({ where: { id } });
+  if (!source) throw new Error("Product not found");
+
+  const baseSlug = `${source.slug}-copy`.slice(0, 72);
+  let slug = baseSlug;
+  let n = 2;
+  while (await prisma.product.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${n}`.slice(0, 80);
+    n += 1;
+  }
+
+  const copyName = source.name.endsWith(" (copy)")
+    ? `${source.name} ${n}`
+    : `${source.name} (copy)`;
+
+  const created = await prisma.product.create({
+    data: {
+      name: copyName,
+      slug,
+      description: source.description,
+      brand: source.brand,
+      subCategory: source.subCategory,
+      sku: source.sku ? `${source.sku}-COPY` : null,
+      price: source.price,
+      oldPrice: source.oldPrice,
+      stock: source.stock,
+      lowStockAt: source.lowStockAt,
+      images: source.images,
+      flashDeal: false,
+      featured: false,
+      live: false,
+      offerTag: "NEW",
+      gender: source.gender,
+      sizes: source.sizes,
+      sizePrices: source.sizePrices ?? undefined,
+      categoryId: source.categoryId,
+      sortOrder: source.sortOrder,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/deals");
+  revalidatePath("/management");
+  revalidatePath("/management/products");
+  redirect(`/management/products/${created.id}`);
+}
+
 export async function toggleProductLive(id: string, live: boolean) {
   await requireAdmin();
   if (!id) return;

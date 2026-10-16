@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MetaPurchase } from "@/components/analytics/MetaPurchase";
 import { Logo } from "@/components/layout/Logo";
 import { OrderTawkNotify } from "@/components/checkout/OrderTawkNotify";
 import { CreatePasswordForm } from "@/app/checkout/done/CreatePasswordForm";
@@ -82,12 +83,27 @@ export default async function CheckoutDonePage({ searchParams }: PageProps) {
       </div>
 
       {placed ? (
-        <OrderTawkNotify
-          name={placed.customerName}
-          email={placed.email}
-          phone={placed.phone}
-          attributes={orderTawkAttributes(toNotifyPayload(placed))}
-        />
+        <>
+          <MetaPurchase
+            orderId={String(placed.number)}
+            value={placed.total}
+            items={placed.items
+              .filter((i): i is typeof i & { productId: string } => Boolean(i.productId))
+              .map((i) => ({
+                productId: i.productId,
+                name: i.name,
+                qty: i.qty,
+                size: i.size,
+                unitPrice: i.unitPrice,
+              }))}
+          />
+          <OrderTawkNotify
+            name={placed.customerName}
+            email={placed.email}
+            phone={placed.phone}
+            attributes={orderTawkAttributes(toNotifyPayload(placed))}
+          />
+        </>
       ) : null}
     </div>
   );
