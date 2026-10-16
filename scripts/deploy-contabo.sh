@@ -12,4 +12,4 @@ rsync -az --delete \
   --exclude "_brand_logos" \
   --exclude "tsconfig.tsbuildinfo" \
   "$ROOT"/ contabo:/var/www/sites/swiftmall.co.ke/
-ssh contabo 'cd /var/www/sites/swiftmall.co.ke && mkdir -p uploads/products uploads/hero && npx prisma generate && npx prisma db push && NODE_ENV=production npm run build && pm2 restart swiftmall'
+ssh contabo 'cd /var/www/sites/swiftmall.co.ke && mkdir -p uploads/products uploads/hero && npx prisma generate && NODE_ENV=production npm run build && pm2 restart swiftmall'

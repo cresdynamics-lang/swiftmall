@@ -35,10 +35,15 @@ echo "→ fix ownership + build + restart"
   set -euo pipefail
   cd $REMOTE_DIR
   mkdir -p uploads/products uploads/hero
+  # Generate client only — never db push/migrate/seed on live (preserves schema + data).
   npx prisma generate
-  npx prisma db push
   NODE_ENV=production NODE_OPTIONS=--max-old-space-size=1536 npm run build
-  pm2 restart swiftmall || pm2 start ecosystem.config.cjs
+  # Clean restart so port 3020 is not left held by a stale Next process.
+  pm2 delete swiftmall 2>/dev/null || true
+  fuser -k 3020/tcp 2>/dev/null || true
+  sleep 1
+  pm2 start ecosystem.config.cjs
+  pm2 save
   pm2 status swiftmall
 '"
 
