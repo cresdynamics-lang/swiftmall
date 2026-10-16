@@ -11,6 +11,10 @@ RSYNC=(rsync -az --delete
   --exclude .next
   --exclude .env
   --exclude .git
+  --exclude .pm2
+  --exclude .cache
+  --exclude .npm
+  --exclude .config
   --exclude /uploads
   --exclude "_product_photos"
   --exclude "_brand_logos"
@@ -22,15 +26,19 @@ echo "→ rsync to $HOST:$REMOTE_DIR"
   --rsync-path="sudo rsync" \
   "$ROOT"/ "$HOST:$REMOTE_DIR/"
 
-echo "→ build + restart on server"
-"${SSH[@]}" "$HOST" "sudo -u site_swift bash -lc '
+echo "→ fix ownership + build + restart"
+"${SSH[@]}" "$HOST" "sudo chown -R site_swift:websites $REMOTE_DIR && \
+  sudo mkdir -p $REMOTE_DIR/.pm2/logs $REMOTE_DIR/.pm2/pids $REMOTE_DIR/.pm2/modules && \
+  echo '{}' | sudo tee $REMOTE_DIR/.pm2/module_conf.json >/dev/null && \
+  sudo chown -R site_swift:site_swift $REMOTE_DIR/.pm2 && \
+  sudo -u site_swift bash -lc '
   set -euo pipefail
   cd $REMOTE_DIR
   mkdir -p uploads/products uploads/hero
   npx prisma generate
   npx prisma db push
   NODE_ENV=production NODE_OPTIONS=--max-old-space-size=1536 npm run build
-  pm2 restart swiftmall
+  pm2 restart swiftmall || pm2 start ecosystem.config.cjs
   pm2 status swiftmall
 '"
 
