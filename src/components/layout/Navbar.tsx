@@ -31,7 +31,7 @@ export function Navbar({ onOpenMenu }: NavbarProps) {
   return (
     <header className="bg-ink text-white shadow-md">
       <div className="relative mx-auto flex max-w-[1600px] items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-2.5 lg:px-6">
-        <Logo className="max-w-[120px] shrink-0 sm:max-w-[160px] lg:max-w-none" />
+        <Logo className="max-w-[140px] shrink-0 sm:max-w-[180px] lg:max-w-[220px]" />
 
         {/* Desktop / tablet: narrow search */}
         <div className="ml-auto hidden w-full max-w-[200px] shrink-0 sm:max-w-[240px] md:block lg:max-w-[260px]">
