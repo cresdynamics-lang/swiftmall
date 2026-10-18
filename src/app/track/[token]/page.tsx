@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   business,
   formatOrderNumber,
+  pickupReadyDisplay,
   shopAddressDisplay,
   shopHoursDisplay,
 } from "@/lib/business";
@@ -39,6 +40,7 @@ export default async function TrackTokenPage({ params }: PageProps) {
     order.paymentState === "PART_PAID" || order.paymentState === "TO_COLLECT"
       ? order.total - order.amountConfirmed
       : 0;
+  const pickupReady = pickupReadyDisplay();
 
   return (
     <div className="mx-auto max-w-lg px-3 py-10 sm:px-4">
@@ -100,6 +102,7 @@ export default async function TrackTokenPage({ params }: PageProps) {
         {order.fulfilment === "PICKUP" ? (
           <p className="pt-2 text-xs text-ink/60">
             Pickup: {shopAddressDisplay()}. Hours: {shopHoursDisplay()}.{" "}
+            {pickupReady ? `${pickupReady} ` : null}
             {business.pickup.collectHint}
           </p>
         ) : (

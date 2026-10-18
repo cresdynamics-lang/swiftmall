@@ -3,6 +3,7 @@ import {
   business,
   deliveryPromiseForZone,
   formatOrderNumber,
+  pickupReadyDisplay,
   shopAddressDisplay,
   shopHoursDisplay,
 } from "@/lib/business";
@@ -79,7 +80,8 @@ function escape(s: string) {
 
 function fulfilmentBlock(order: OrderMail) {
   if (order.fulfilment === "PICKUP") {
-    return `<p><strong>Pickup at the shop</strong><br/>${escape(shopAddressDisplay())}<br/>Hours: ${escape(shopHoursDisplay())}<br/>${escape(business.pickup.collectHint)}<br/>${escape(business.pickup.afterHoursNote)}${order.collectorName ? `<br/>Collector: ${escape(order.collectorName)}` : ""}</p>`;
+    const ready = pickupReadyDisplay();
+    return `<p><strong>Pickup at the shop</strong><br/>${escape(shopAddressDisplay())}<br/>Hours: ${escape(shopHoursDisplay())}${ready ? `<br/>${escape(ready)}` : ""}<br/>${escape(business.pickup.collectHint)}<br/>${escape(business.pickup.afterHoursNote)}${order.collectorName ? `<br/>Collector: ${escape(order.collectorName)}` : ""}</p>`;
   }
   const promise =
     order.zone === "NAIROBI"

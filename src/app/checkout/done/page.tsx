@@ -6,6 +6,7 @@ import { CreatePasswordForm } from "@/app/checkout/done/CreatePasswordForm";
 import {
   business,
   formatOrderNumber,
+  pickupReadyDisplay,
   shopAddressDisplay,
   shopHoursDisplay,
 } from "@/lib/business";
@@ -39,6 +40,7 @@ export default async function CheckoutDonePage({ searchParams }: PageProps) {
         `Hi Swift Mall, my order is ${formatOrderNumber(placed.number)}.`,
       )
     : whatsappHref();
+  const pickupReady = pickupReadyDisplay();
 
   return (
     <div className="min-h-screen bg-page">
@@ -80,6 +82,7 @@ export default async function CheckoutDonePage({ searchParams }: PageProps) {
             {placed.fulfilment === "PICKUP" ? (
               <p>
                 <strong>Pickup:</strong> {shopAddressDisplay()}. Hours: {shopHoursDisplay()}.{" "}
+                {pickupReady ? `${pickupReady} ` : null}
                 {business.pickup.collectHint}
               </p>
             ) : (

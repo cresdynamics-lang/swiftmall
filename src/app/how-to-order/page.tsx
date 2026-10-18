@@ -3,6 +3,7 @@ import { TrustPageShell, TrustSection } from "@/components/trust/TrustPageShell"
 import {
   business,
   isTrustPageLive,
+  pickupReadyDisplay,
   shopAddressDisplay,
   shopHoursDisplay,
 } from "@/lib/business";
@@ -40,6 +41,7 @@ export default function HowToOrderPage() {
           </li>
           <li>
             <strong>Pickup:</strong> {shopAddressDisplay()}. Hours: {shopHoursDisplay()}.{" "}
+            {pickupReadyDisplay() ? `${pickupReadyDisplay()} ` : null}
             {business.pickup.collectHint} Fee KES {business.pickup.feeKes}.
           </li>
         </ul>

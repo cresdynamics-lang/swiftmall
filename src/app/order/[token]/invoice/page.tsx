@@ -110,13 +110,6 @@ export default async function OrderInvoicePage({ params }: PageProps) {
         </p>
       </div>
 
-      <p className="mt-8 text-xs text-ink/45">
-        This is an order invoice, not a tax invoice.{" "}
-        {business.taxInvoiceNote.confirmed
-          ? business.taxInvoiceNote.value
-          : "Kenyan tax invoicing details: ask the owner’s accountant. [OWNER TO CONFIRM]"}
-      </p>
-
       <p className="mt-6 text-sm print:hidden">
         <a href="#" className="font-semibold underline" id="print-invoice">
           Print

@@ -62,8 +62,8 @@ export const business = {
     enabled: true,
     feeKes: 0,
     readyAfterConfirmation: {
-      value: "",
-      confirmed: false,
+      value: "same day",
+      confirmed: true,
     } satisfies Confirmable<string>,
     collectHint: "Bring your order number and your phone.",
     afterHoursNote:
@@ -260,6 +260,13 @@ export function shopHoursDisplay(): string {
   return days
     ? `${days}, ${business.shop.hoursDisplay}`
     : business.shop.hoursDisplay;
+}
+
+/** Customer-facing pickup readiness, e.g. "Ready for pickup the same day." */
+export function pickupReadyDisplay(): string | null {
+  const ready = confirmedValue(business.pickup.readyAfterConfirmation);
+  if (!ready) return null;
+  return `Ready for pickup the ${ready}.`;
 }
 
 export function formatOrderNumber(n: number): string {

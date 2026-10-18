@@ -13,6 +13,7 @@ import {
   business,
   deliveryFeeForZone,
   deliveryPromiseForZone,
+  pickupReadyDisplay,
   shopAddressDisplay,
   shopHoursDisplay,
   zoneForCounty,
@@ -59,6 +60,7 @@ export default function CheckoutPage() {
   const total = subtotal + shipping;
   const depositNow = Math.round(total * business.payments.depositShare);
   const balance = total - depositNow;
+  const pickupReady = pickupReadyDisplay();
 
   const deliveryMethods: PaymentMethod[] = ["cash_on_delivery", "pay_now", "deposit"];
   const pickupMethods: PaymentMethod[] = ["cash_on_delivery", "pay_now"];
@@ -282,6 +284,7 @@ export default function CheckoutPage() {
                   <div className="mt-4 space-y-2 text-sm text-ink/75">
                     <p className="font-medium text-ink">{shopAddressDisplay()}</p>
                     <p>Hours: {shopHoursDisplay()}</p>
+                    {pickupReady ? <p>{pickupReady}</p> : null}
                     <p>{business.pickup.collectHint}</p>
                     <p className="text-xs">{business.pickup.afterHoursNote}</p>
                     <p className="text-xs">Pickup fee {formatKes(0)}.</p>

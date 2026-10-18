@@ -5,6 +5,7 @@ import {
   business,
   confirmedValue,
   isTrustPageLive,
+  pickupReadyDisplay,
   shopAddressDisplay,
   shopHoursDisplay,
 } from "@/lib/business";
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export default function DeliveryPage() {
   const retry = confirmedValue(business.delivery.retryPolicy);
   const mapUrl = confirmedValue(business.shop.mapUrl);
+  const pickupReady = pickupReadyDisplay();
 
   return (
     <TrustPageShell
@@ -54,6 +56,7 @@ export default function DeliveryPage() {
       <TrustSection title="Pickup at the shop">
         <p>{shopAddressDisplay()}</p>
         <p className="mt-1">Hours: {shopHoursDisplay()}</p>
+        {pickupReady ? <p className="mt-1">{pickupReady}</p> : null}
         <p className="mt-1">{business.pickup.collectHint}</p>
         <p className="mt-1 text-sm text-ink/70">{business.pickup.afterHoursNote}</p>
         <p className="mt-1">Pickup fee KES {business.pickup.feeKes}.</p>
