@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { BackToTop } from "./BackToTop";
@@ -37,7 +37,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <TopStrip />
       <div className="sticky top-0 z-50">
         <Navbar onOpenMenu={() => setMenuOpen(true)} />
-        <MarketNavStrip />
+        <Suspense fallback={<div className="h-12 border-b border-ink/10 bg-white" />}>
+          <MarketNavStrip />
+        </Suspense>
       </div>
       <MobileDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0">{children}</main>

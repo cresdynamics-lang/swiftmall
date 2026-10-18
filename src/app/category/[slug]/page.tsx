@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PRODUCT_GRID_CLASS, ProductCard } from "@/components/product/ProductCard";
-import { getStoreCategory } from "@/lib/categories-db";
+import { business } from "@/lib/business";
+import { listStoreCategories, getStoreCategory } from "@/lib/categories-db";
 import { CATEGORY_SUB_OPTIONS } from "@/lib/category-subs";
+import { getDepartmentContent } from "@/lib/department-content";
 import { getProductsByCategory } from "@/lib/products";
 
 type PageProps = {
@@ -10,10 +13,29 @@ type PageProps = {
   searchParams: Promise<{ gender?: string; g?: string; sub?: string }>;
 };
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateStaticParams() {
+  const cats = await listStoreCategories();
+  return cats.map((c) => ({ slug: c.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const cat = await getStoreCategory(slug);
-  return { title: cat?.name ?? "Category" };
+  if (!cat) return { title: "Category" };
+  const dept = getDepartmentContent(slug);
+  const title = dept && !dept.draft ? dept.h1 : `${cat.name} | ${business.brandName}`;
+  const description =
+    (dept && !dept.draft ? dept.intro : cat.blurb) ||
+    `Shop ${cat.name} at ${business.brandName}. Pay on delivery. Flat KES ${business.shippingFlatKes} delivery countrywide.`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title: cat.name,
+      description,
+      url: `${business.url}/category/${slug}`,
+    },
+  };
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
@@ -32,6 +54,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const isFashion = slug === "fashion";
   const subOptions = CATEGORY_SUB_OPTIONS[slug] ?? [];
+  const dept = getDepartmentContent(slug);
+  const intro = dept && !dept.draft ? dept.intro : cat.blurb;
 
   return (
     <div className="mx-auto max-w-7xl px-3 py-6 sm:px-4">
@@ -44,10 +68,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       </nav>
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0 max-w-2xl">
           <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{cat.name}</h1>
-          <p className="mt-1 text-sm text-ink/55">
-            {items.length} products · all with cash on delivery
+          {intro ? <p className="mt-1 text-sm text-ink/55">{intro}</p> : null}
+          <p className="mt-1 text-sm font-medium text-ink/70">
+            {items.length} products · pay on delivery · KES {business.shippingFlatKes} delivery
           </p>
         </div>
 
