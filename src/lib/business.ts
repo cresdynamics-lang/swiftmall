@@ -36,11 +36,21 @@ export const business = {
     addressLine:
       "Simba Centre, next to Family Bank, opposite Absa, River Road and Ronald Ngala junction, Nairobi",
     floorOrShop: { value: "", confirmed: false } satisfies Confirmable<string>,
-    mapUrl: { value: "", confirmed: false } satisfies Confirmable<string>,
-    /** Display string used site-wide */
-    hoursDisplay: "8am to 4pm",
-    hoursDays: { value: "", confirmed: false } satisfies Confirmable<string>,
-    googleBusinessUrl: { value: "", confirmed: false } satisfies Confirmable<string>,
+    mapUrl: {
+      value: "https://maps.app.goo.gl/eQPWpEUrYLtxrsck7",
+      confirmed: true,
+    } satisfies Confirmable<string>,
+    /** Clock hours only — combined with hoursDays in shopHoursDisplay() */
+    hoursDisplay: "8am to 5pm",
+    hoursDays: {
+      value: "Monday to Saturday",
+      confirmed: true,
+    } satisfies Confirmable<string>,
+    googleBusinessUrl: {
+      value:
+        "https://www.google.com/searchviewer/10?output=search&svid=CAwSKRInCgNwdnESIE9oWXdlREE2TUhnNE5ETTNZalV5WVRVd1ptVm1aVE0wGAo&hl=en&gl=KE",
+      confirmed: true,
+    } satisfies Confirmable<string>,
     /** Internal only — never show to customers */
     riderDispatchNote: {
       value: "Riders handle up to 20 kg daily",
@@ -57,7 +67,7 @@ export const business = {
     } satisfies Confirmable<string>,
     collectHint: "Bring your order number and your phone.",
     afterHoursNote:
-      "Orders can be placed online any time. Pickup is during shop hours (8am to 4pm). An order placed after hours is collected from the next shop opening.",
+      "Orders can be placed online any time. Pickup is Monday to Saturday, 8am to 5pm. An order placed after hours or on Sunday is collected from the next shop opening.",
   },
 
   deliveryZones: {
@@ -98,9 +108,15 @@ export const business = {
       "Simba Centre, next to Family Bank, opposite Absa, River Road and Ronald Ngala junction, Nairobi",
     confirmed: true,
   } satisfies Confirmable<string>,
-  mapUrl: { value: "", confirmed: false } satisfies Confirmable<string>,
+  mapUrl: {
+    value: "https://maps.app.goo.gl/eQPWpEUrYLtxrsck7",
+    confirmed: true,
+  } satisfies Confirmable<string>,
   pickupAvailable: { value: true, confirmed: true } satisfies Confirmable<boolean>,
-  openingHours: { value: "8am to 4pm", confirmed: true } satisfies Confirmable<string>,
+  openingHours: {
+    value: "Monday to Saturday, 8am to 5pm",
+    confirmed: true,
+  } satisfies Confirmable<string>,
   typicalReplyTime: { value: "", confirmed: false } satisfies Confirmable<string>,
 
   owner: {
@@ -242,7 +258,7 @@ export function shopAddressDisplay(): string {
 export function shopHoursDisplay(): string {
   const days = confirmedValue(business.shop.hoursDays);
   return days
-    ? `${business.shop.hoursDisplay} (${days})`
+    ? `${days}, ${business.shop.hoursDisplay}`
     : business.shop.hoursDisplay;
 }
 

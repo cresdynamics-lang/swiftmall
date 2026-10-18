@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TrustPageShell, TrustSection } from "@/components/trust/TrustPageShell";
-import { business, isTrustPageLive } from "@/lib/business";
+import { business, isTrustPageLive, shopHoursDisplay } from "@/lib/business";
 
 export const metadata: Metadata = {
   title: "FAQ | Swift Mall",
@@ -58,7 +58,7 @@ const faqs = [
       },
       {
         q: "Can I pick up from the shop?",
-        a: `Yes. ${business.shop.addressLine}. Hours: ${business.shop.hoursDisplay}. ${business.pickup.collectHint} Pickup fee KES ${business.pickup.feeKes}. ${business.pickup.afterHoursNote}`,
+        a: `Yes. ${business.shop.addressLine}. Hours: ${shopHoursDisplay()}. ${business.pickup.collectHint} Pickup fee KES ${business.pickup.feeKes}. ${business.pickup.afterHoursNote}`,
       },
       {
         q: "What if I am not at home on delivery day?",
