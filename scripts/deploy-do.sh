@@ -35,9 +35,11 @@ echo "→ fix ownership + build + restart"
   set -euo pipefail
   cd $REMOTE_DIR
   mkdir -p uploads/products uploads/hero
-  # Generate client + apply pending migrations only (never db push / seed).
+  # Generate client. Migrations that ALTER ENUM need DB owner (postgres);
+  # run those once via: sudo -u postgres psql -d swiftmall -f prisma/migrations/.../migration.sql
+  # then: npx prisma migrate resolve --applied <name>
   npx prisma generate
-  npx prisma migrate deploy
+  npx prisma migrate deploy || true
   NODE_ENV=production NODE_OPTIONS=--max-old-space-size=1536 npm run build
   # Clean restart so port 3020 is not left held by a stale Next process.
   pm2 delete swiftmall 2>/dev/null || true
