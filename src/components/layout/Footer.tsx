@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { useCategories } from "@/context/CategoriesContext";
-import { business, isTrustPageLive } from "@/lib/business";
+import {
+  business,
+  confirmedValue,
+  isTrustPageLive,
+  shopAddressDisplay,
+  shopHoursDisplay,
+} from "@/lib/business";
 import { telHref, whatsappHref } from "@/lib/store-config";
 import { Logo } from "./Logo";
 
 export function Footer() {
   const categories = useCategories();
-  const paybillName = business.payments.paybillDisplayName.confirmed
-    ? business.payments.paybillDisplayName.value
-    : null;
+  const mapUrl = confirmedValue(business.shop.mapUrl);
 
   return (
     <footer className="mt-auto border-t border-ink/10 bg-ink text-white">
@@ -19,6 +23,19 @@ export function Footer() {
           <Logo />
           <p className="mt-3 max-w-md text-sm text-white/65">
             Order, inspect, then pay. Delivered countrywide for KES {business.shippingFlatKes}.
+          </p>
+          <p className="mt-2 max-w-md text-xs text-white/50">
+            {shopAddressDisplay()}
+            <br />
+            Hours: {shopHoursDisplay()}
+            {mapUrl ? (
+              <>
+                <br />
+                <a href={mapUrl} className="underline hover:text-white" target="_blank" rel="noopener noreferrer">
+                  Open in Maps
+                </a>
+              </>
+            ) : null}
           </p>
         </div>
 
@@ -156,7 +173,6 @@ export function Footer() {
               </li>
               <li className="pt-2 text-[10px] text-white/45 sm:text-xs">
                 M-Pesa Paybill {business.payments.paybill} · A/C {business.payments.accountNumber}
-                {paybillName ? ` · ${paybillName}` : ""}
               </li>
             </ul>
           </div>

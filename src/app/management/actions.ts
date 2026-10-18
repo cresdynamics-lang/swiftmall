@@ -335,9 +335,55 @@ export async function toggleProductLive(id: string, live: boolean) {
   revalidatePath("/management/products");
 }
 
-export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+export async function updateOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+  opts?: { customerNote?: string; notify?: boolean; actor?: string },
+) {
   await requireAdmin();
-  await prisma.order.update({ where: { id: orderId }, data: { status } });
+  const notify = opts?.notify !== false;
+  const actor = opts?.actor ?? "admin";
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status,
+      customerNote: opts?.customerNote?.trim() || undefined,
+      events: {
+        create: {
+          status,
+          note: opts?.customerNote?.trim() || "",
+          actor,
+          notify,
+        },
+      },
+    },
+    include: { items: true, events: true },
+  });
+  await prisma.auditLog.create({
+    data: {
+      actor,
+      action: `status:${status}`,
+      detail: opts?.customerNote?.trim() || "",
+      orderId,
+    },
+  });
+  if (notify) {
+    const { shouldEmailForStatus, queueCustomerOrderEmail } = await import(
+      "@/lib/order-emails"
+    );
+    const kind = shouldEmailForStatus(status);
+    if (kind) void queueCustomerOrderEmail(order, kind);
+  }
+  if (status === "CUSTOMER_UNREACHABLE" || status === "DELIVERY_REFUSED") {
+    await prisma.adminAlert.create({
+      data: {
+        type: status === "CUSTOMER_UNREACHABLE" ? "unreachable" : "refused",
+        title: `Order #${order.number}: ${status}`,
+        href: `/management/orders?id=${orderId}`,
+        orderId,
+      },
+    });
+  }
   revalidatePath("/management");
   revalidatePath("/management/orders");
   revalidatePath("/management/reports");
@@ -347,6 +393,97 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 export async function updateOrderNote(orderId: string, note: string) {
   await requireAdmin();
   await prisma.order.update({ where: { id: orderId }, data: { note } });
+  revalidatePath("/management/orders");
+}
+
+/** Only admin confirms payment — never from customer claim alone. */
+export async function confirmOrderPayment(
+  orderId: string,
+  amountReceived: number,
+  actor = "admin",
+) {
+  await requireAdmin();
+  const current = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!current) throw new Error("Order not found");
+  const amount = Math.max(0, Math.round(amountReceived));
+  const isDeposit = current.paymentMethod === "DEPOSIT";
+  const fullyPaid = !isDeposit || amount >= current.total;
+  const partPaid = isDeposit && amount > 0 && amount < current.total;
+
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      amountConfirmed: amount,
+      depositPaid: isDeposit ? Math.min(amount, current.amountExpected || amount) : amount,
+      paymentState: fullyPaid ? "PAID" : partPaid ? "PART_PAID" : current.paymentState,
+    },
+    include: { items: true },
+  });
+  await prisma.auditLog.create({
+    data: {
+      actor,
+      action: "payment_confirm",
+      detail: `KES ${amount}`,
+      orderId,
+    },
+  });
+  const { queueCustomerOrderEmail } = await import("@/lib/order-emails");
+  void queueCustomerOrderEmail(order, "payment");
+  revalidatePath("/management/orders");
+}
+
+export async function recordCashCollected(
+  orderId: string,
+  amount: number,
+  actor = "admin",
+) {
+  await requireAdmin();
+  const amt = Math.max(0, Math.round(amount));
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      cashCollected: amt,
+      cashCollectedBy: actor,
+      cashCollectedAt: new Date(),
+      amountConfirmed: amt,
+      paymentState: "PAID",
+    },
+    include: { items: true },
+  });
+  await prisma.auditLog.create({
+    data: {
+      actor,
+      action: "cash_collected",
+      detail: `KES ${amt}`,
+      orderId,
+    },
+  });
+  const { queueCustomerOrderEmail } = await import("@/lib/order-emails");
+  void queueCustomerOrderEmail(order, "payment");
+  revalidatePath("/management/orders");
+}
+
+export async function saveRiderDetails(
+  orderId: string,
+  riderName: string,
+  riderPhone: string,
+) {
+  await requireAdmin();
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      riderName: riderName.trim(),
+      riderPhone: riderPhone.trim(),
+    },
+  });
+  await prisma.auditLog.create({
+    data: {
+      actor: "admin",
+      action: "rider_update",
+      detail: `${riderName} ${riderPhone}`.trim(),
+      orderId,
+    },
+  });
   revalidatePath("/management/orders");
 }
 

@@ -1,13 +1,14 @@
 /**
- * Single source of truth for trust pages, SEO and customer messaging.
- * Fields marked `confirmed: false` must not appear in live customer-facing copy
- * until the owner supplies them. Never invent values.
+ * Single source of truth for customer-facing business facts.
+ * Fields marked `confirmed: false` must not appear as live promises.
+ * Never invent fees, times, or addresses — use [OWNER TO CONFIRM] in handover only.
  */
 export type Confirmable<T> = { value: T; confirmed: boolean };
 
+export type DeliveryZoneId = "nairobi" | "upcountry";
+
 export const business = {
   brandName: "Swift Mall",
-  /** Short storefront name used in titles */
   shortName: "Swiftmall",
   tagline: "Shopping Redefined",
   domain: "swiftmall.co.ke",
@@ -16,35 +17,90 @@ export const business = {
 
   phone: "0727383847",
   whatsapp: "0727383847",
-  email: "orders@swiftmall.co.ke",
-  /** Returns / complaints inbox (from published return policy) */
-  returnsEmail: "ww.swiftmall@gmail.com",
+  /** Public contact / Reply-To — owner final answer */
+  email: "swiftmall@gmail.com",
+  returnsEmail: "swiftmall@gmail.com",
+
+  /** Mail From must be a domain address (Resend); Reply-To uses email above */
+  mail: {
+    fromName: "Swift Mall",
+    fromAddress: "noreply@swiftmall.co.ke",
+    replyTo: "swiftmall@gmail.com",
+    alertRecipients: ["swiftmall@gmail.com"] as const,
+  },
 
   shippingFlatKes: 250,
 
+  shop: {
+    name: "Swift Mall",
+    addressLine:
+      "Simba Centre, next to Family Bank, opposite Absa, River Road and Ronald Ngala junction, Nairobi",
+    floorOrShop: { value: "", confirmed: false } satisfies Confirmable<string>,
+    mapUrl: { value: "", confirmed: false } satisfies Confirmable<string>,
+    /** Display string used site-wide */
+    hoursDisplay: "8am to 4pm",
+    hoursDays: { value: "", confirmed: false } satisfies Confirmable<string>,
+    googleBusinessUrl: { value: "", confirmed: false } satisfies Confirmable<string>,
+    /** Internal only — never show to customers */
+    riderDispatchNote: {
+      value: "Riders handle up to 20 kg daily",
+      confirmed: false,
+    } satisfies Confirmable<string>,
+  },
+
+  pickup: {
+    enabled: true,
+    feeKes: 0,
+    readyAfterConfirmation: {
+      value: "",
+      confirmed: false,
+    } satisfies Confirmable<string>,
+    collectHint: "Bring your order number and your phone.",
+    afterHoursNote:
+      "Orders can be placed online any time. Pickup is during shop hours (8am to 4pm). An order placed after hours is collected from the next shop opening.",
+  },
+
+  deliveryZones: {
+    nairobi: {
+      id: "nairobi" as const,
+      label: "Nairobi",
+      feeKes: 250,
+      promise:
+        "Delivered within 24 hours of order confirmation, same day in Nairobi.",
+    },
+    upcountry: {
+      id: "upcountry" as const,
+      label: "Outside Nairobi or upcountry",
+      feeKes: 250,
+      promise: "We will tell you the delivery time when we confirm your order.",
+    },
+  },
+
   payments: {
     paybill: "880100",
-    /** Account number buyers enter at Lipa na M-Pesa */
     accountNumber: "9211670018",
-    /** Name shown on M-Pesa confirmation — must match live Paybill */
+    /** Do not invent — Payments page keeps generic check-the-name wording */
     paybillDisplayName: {
       value: "",
       confirmed: false,
     } satisfies Confirmable<string>,
     depositEnabled: true,
     depositShare: 0.5,
-    /** Whether deposit is refundable */
     depositRefundable: { value: false, confirmed: false } satisfies Confirmable<boolean>,
     methodsLive: ["cash_on_delivery", "pay_now", "deposit"] as const,
   },
 
   legalName: { value: "", confirmed: false } satisfies Confirmable<string>,
   registrationNumber: { value: "", confirmed: false } satisfies Confirmable<string>,
-  city: { value: "", confirmed: false } satisfies Confirmable<string>,
-  physicalAddress: { value: "", confirmed: false } satisfies Confirmable<string>,
+  city: { value: "Nairobi", confirmed: true } satisfies Confirmable<string>,
+  physicalAddress: {
+    value:
+      "Simba Centre, next to Family Bank, opposite Absa, River Road and Ronald Ngala junction, Nairobi",
+    confirmed: true,
+  } satisfies Confirmable<string>,
   mapUrl: { value: "", confirmed: false } satisfies Confirmable<string>,
-  pickupAvailable: { value: false, confirmed: false } satisfies Confirmable<boolean>,
-  openingHours: { value: "", confirmed: false } satisfies Confirmable<string>,
+  pickupAvailable: { value: true, confirmed: true } satisfies Confirmable<boolean>,
+  openingHours: { value: "8am to 4pm", confirmed: true } satisfies Confirmable<string>,
   typicalReplyTime: { value: "", confirmed: false } satisfies Confirmable<string>,
 
   owner: {
@@ -54,11 +110,8 @@ export const business = {
   },
 
   returns: {
-    /** Complaint / return request window after delivery */
     reportWithinDays: { value: 5, confirmed: true } satisfies Confirmable<number>,
-    /** Kept for older UI that mentioned hours — 5 days */
     reportWithinHours: { value: 120, confirmed: true } satisfies Confirmable<number>,
-    /** Change-of-mind / correctly delivered returns allowed with processing fee */
     changeOfMind: { value: true, confirmed: true } satisfies Confirmable<boolean>,
     processingFeePercent: { value: 10, confirmed: true } satisfies Confirmable<number>,
     nonReturnable: {
@@ -87,9 +140,18 @@ export const business = {
   },
 
   delivery: {
-    nairobi: { value: "", confirmed: false } satisfies Confirmable<string>,
-    majorTowns: { value: "", confirmed: false } satisfies Confirmable<string>,
-    otherAreas: { value: "", confirmed: false } satisfies Confirmable<string>,
+    nairobi: {
+      value: "Delivered within 24 hours of order confirmation, same day in Nairobi.",
+      confirmed: true,
+    } satisfies Confirmable<string>,
+    majorTowns: {
+      value: "We will tell you the delivery time when we confirm your order.",
+      confirmed: true,
+    } satisfies Confirmable<string>,
+    otherAreas: {
+      value: "We will tell you the delivery time when we confirm your order.",
+      confirmed: true,
+    } satisfies Confirmable<string>,
     retryPolicy: { value: "", confirmed: false } satisfies Confirmable<string>,
   },
 
@@ -129,9 +191,14 @@ export const business = {
     },
     { slug: "fashion", name: "Fashion", blurb: "Shoes, bags and more." },
   ],
+
+  /** Tax invoicing — not implemented; accountant to advise */
+  taxInvoiceNote: {
+    value: "",
+    confirmed: false,
+  } satisfies Confirmable<string>,
 } as const;
 
-/** Trust pages that may go live only when every required fact is confirmed. */
 export const trustPagePublish = {
   about: false,
   howToOrder: true,
@@ -151,4 +218,34 @@ export function isTrustPageLive(key: TrustPageKey): boolean {
 
 export function confirmedValue<T>(field: Confirmable<T>): T | null {
   return field.confirmed ? field.value : null;
+}
+
+export function zoneForCounty(county: string): DeliveryZoneId {
+  return county.trim().toLowerCase() === "nairobi" ? "nairobi" : "upcountry";
+}
+
+export function deliveryFeeForZone(zone: DeliveryZoneId): number {
+  return business.deliveryZones[zone].feeKes;
+}
+
+export function deliveryPromiseForZone(zone: DeliveryZoneId): string {
+  return business.deliveryZones[zone].promise;
+}
+
+export function shopAddressDisplay(): string {
+  const floor = confirmedValue(business.shop.floorOrShop);
+  return floor
+    ? `${business.shop.addressLine} · ${floor}`
+    : business.shop.addressLine;
+}
+
+export function shopHoursDisplay(): string {
+  const days = confirmedValue(business.shop.hoursDays);
+  return days
+    ? `${business.shop.hoursDisplay} (${days})`
+    : business.shop.hoursDisplay;
+}
+
+export function formatOrderNumber(n: number): string {
+  return `SM-${String(n).padStart(6, "0")}`;
 }

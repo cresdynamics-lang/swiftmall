@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { business } from "@/lib/business";
 
 export function HowItWorksBlock() {
   const steps = [
@@ -9,13 +10,13 @@ export function HowItWorksBlock() {
     },
     {
       n: "2",
-      title: "Tell us where to deliver",
-      text: "Name, phone and delivery area. No account needed.",
+      title: "Delivery or pickup",
+      text: "Name, phone and delivery area — or collect at our Nairobi shop. No account needed.",
     },
     {
       n: "3",
       title: "Choose how to pay",
-      text: "Pay on delivery, pay now with M-Pesa, or pay a deposit.",
+      text: "Pay on delivery or at pickup, pay now with M-Pesa, or pay a deposit on delivery orders.",
     },
   ];
 
@@ -44,7 +45,7 @@ export function HowItWorksBlock() {
         ))}
       </div>
       <p className="mt-4 text-sm text-ink/55">
-        Order, inspect, then pay. Delivered countrywide for KES 250.
+        Order, inspect, then pay. Delivered countrywide for KES {business.shippingFlatKes}.
       </p>
     </section>
   );

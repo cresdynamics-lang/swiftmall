@@ -49,6 +49,7 @@ export async function getCustomerSession() {
   if (!customerId || !token) return null;
   const customer = await prisma.customer.findUnique({ where: { id: customerId } });
   if (!customer?.passwordHash) return null;
+  if (!customer.email) return null;
   if (token !== sessionToken(customer.id, customer.email)) return null;
   return customer;
 }

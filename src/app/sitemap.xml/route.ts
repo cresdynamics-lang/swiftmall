@@ -61,7 +61,6 @@ export async function GET() {
       { path: "/warranty", live: isTrustPageLive("warranty"), priority: 0.5, freq: "monthly" },
       { path: "/help/terms", live: true, priority: 0.3, freq: "yearly" },
       { path: "/help/privacy", live: true, priority: 0.3, freq: "yearly" },
-      { path: "/track", live: true, priority: 0.5, freq: "monthly" },
     ];
 
   const entries: Entry[] = staticPaths

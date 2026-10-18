@@ -3,33 +3,51 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { OrderStatus } from "@prisma/client";
-import { updateOrderNote, updateOrderStatus } from "@/app/management/actions";
+import {
+  confirmOrderPayment,
+  recordCashCollected,
+  saveRiderDetails,
+  updateOrderNote,
+  updateOrderStatus,
+} from "@/app/management/actions";
 import {
   statusTone,
   type AdminOrderView,
 } from "@/lib/admin-orders-view";
-import type { OrderFilter } from "@/lib/orders";
+import { formatOrderNumber, type OrderFilter } from "@/lib/orders";
 import { formatKes } from "@/lib/format";
 import { whatsappHref } from "@/lib/store-config";
 
 const filters: { id: OrderFilter; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "new", label: "New" },
+  { id: "new", label: "Awaiting call" },
+  { id: "awaiting_mpesa", label: "M-Pesa codes" },
   { id: "to_dispatch", label: "To dispatch" },
-  { id: "part_paid", label: "Part-paid" },
+  { id: "pickup_ready", label: "Pickup ready" },
+  { id: "part_paid", label: "Deposit" },
   { id: "to_collect", label: "To collect" },
 ];
 
 function matchesFilter(order: AdminOrderView, filter: OrderFilter) {
   switch (filter) {
     case "new":
+    case "awaiting_call":
       return order.status === "NEW";
+    case "awaiting_mpesa":
+      return order.paymentState === "AWAITING_MPESA";
     case "to_dispatch":
-      return order.status === "NEW" || order.status === "CONFIRMED" || order.status === "PACKED";
+      return (
+        order.fulfilment === "DELIVERY" &&
+        (order.status === "NEW" ||
+          order.status === "CONFIRMED" ||
+          order.status === "PACKED")
+      );
+    case "pickup_ready":
+      return order.status === "READY_FOR_PICKUP";
     case "part_paid":
-      return order.payment === "Deposit";
+      return order.paymentState === "PART_PAID";
     case "to_collect":
-      return order.payment === "Cash on delivery" || order.payment === "Pay on delivery";
+      return order.paymentState === "TO_COLLECT";
     default:
       return true;
   }
@@ -45,6 +63,8 @@ export function OrdersBoard({
     salesToday: number;
     toDispatch: number;
     lowStock: number;
+    awaitingMpesa?: number;
+    newOrders?: number;
   };
 }) {
   const [orders, setOrders] = useState(initialOrders);
@@ -184,10 +204,24 @@ export function OrdersBoard({
                       active ? "bg-brand/20" : "hover:bg-ink/[0.03]"
                     }`}
                   >
-                    <td className="px-3 py-3 font-semibold">#{o.number}</td>
+                    <td className="px-3 py-3 font-semibold">
+                      {formatOrderNumber(o.number)}
+                      <span className="mt-0.5 block text-[10px] font-normal text-ink/45">
+                        {o.fulfilment === "PICKUP" ? "Pickup" : "Delivery"}
+                      </span>
+                    </td>
                     <td className="px-3 py-3">{o.customer}</td>
-                    <td className="px-3 py-3 text-ink/70">{o.county}</td>
-                    <td className="px-3 py-3 text-ink/70">{o.payment}</td>
+                    <td className="px-3 py-3 text-ink/70">
+                      {o.fulfilment === "PICKUP" ? "Shop" : o.county}
+                    </td>
+                    <td className="px-3 py-3 text-ink/70">
+                      {o.payment}
+                      {o.mpesaCode ? (
+                        <span className="mt-0.5 block text-[10px] text-amber-700">
+                          Code: {o.mpesaCode}
+                        </span>
+                      ) : null}
+                    </td>
                     <td className="px-3 py-3 font-semibold">
                       {o.total.toLocaleString("en-KE")}
                     </td>
@@ -213,26 +247,85 @@ export function OrdersBoard({
         </div>
 
         {selected ? (
-          <aside className="h-fit rounded-xl bg-white p-4 ring-1 ring-ink/8">
-            <h2 className="font-display text-lg font-bold">Order #{selected.number}</h2>
-            <span
-              className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusTone(selected.status)}`}
-            >
-              {selected.statusLabel}
-            </span>
+          <aside className="h-fit space-y-3 rounded-xl bg-white p-4 ring-1 ring-ink/8">
+            <div>
+              <h2 className="font-display text-lg font-bold">
+                {formatOrderNumber(selected.number)}
+              </h2>
+              <span
+                className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusTone(selected.status)}`}
+              >
+                {selected.statusLabel}
+              </span>
+            </div>
 
-            <p className="mt-3 text-sm text-ink/75">
+            <p className="text-sm text-ink/75">
               {selected.customer} · {selected.phone}
               <br />
-              {selected.email}
+              {selected.email || "(no email)"}
             </p>
-            <p className="mt-2 text-sm text-ink/65">
-              {selected.county}, {selected.town} · {selected.address}
+            <p className="text-sm text-ink/65">
+              {selected.fulfilment === "PICKUP" ? "Pickup" : "Delivery"}
+              {selected.zone ? ` · ${selected.zone}` : ""}
               <br />
-              Delivery note: {selected.carrier !== "—" ? selected.carrier : "Arrange after order"}
+              {selected.address}
             </p>
 
-            <ul className="mt-4 space-y-2 border-t border-ink/8 pt-3">
+            <div className="rounded-lg bg-ink/[0.03] p-3 text-sm">
+              <p className="font-semibold">Payment panel</p>
+              <p className="mt-1 text-ink/70">{selected.paymentNote}</p>
+              {selected.mpesaCode ? (
+                <p className="mt-1 text-amber-800">
+                  Customer M-Pesa code (claim): <strong>{selected.mpesaCode}</strong>
+                </p>
+              ) : null}
+              {selected.amountExpected > 0 ? (
+                <p className="mt-1 text-xs text-ink/55">
+                  Expected: {formatKes(selected.amountExpected)}
+                </p>
+              ) : null}
+              {selected.paymentState === "AWAITING_MPESA" ||
+              selected.paymentState === "PART_PAID" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  className="mt-2 w-full rounded-md bg-brand py-2 text-xs font-semibold"
+                  onClick={() =>
+                    startTransition(async () => {
+                      const amt = window.prompt(
+                        "Amount received (KES)",
+                        String(selected.amountExpected || selected.total),
+                      );
+                      if (!amt) return;
+                      await confirmOrderPayment(selected.id, Number(amt));
+                    })
+                  }
+                >
+                  Confirm payment
+                </button>
+              ) : null}
+              {selected.paymentState === "TO_COLLECT" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  className="mt-2 w-full rounded-md bg-brand py-2 text-xs font-semibold"
+                  onClick={() =>
+                    startTransition(async () => {
+                      const amt = window.prompt(
+                        "Cash collected (KES)",
+                        String(selected.total),
+                      );
+                      if (!amt) return;
+                      await recordCashCollected(selected.id, Number(amt));
+                    })
+                  }
+                >
+                  Record cash collected
+                </button>
+              ) : null}
+            </div>
+
+            <ul className="space-y-2 border-t border-ink/8 pt-3">
               {selected.items.map((item) => (
                 <li key={`${item.name}-${item.qty}`} className="flex items-center gap-3 text-sm">
                   <div className="relative h-10 w-10 overflow-hidden rounded bg-ink/[0.04]">
@@ -249,65 +342,123 @@ export function OrdersBoard({
               ))}
             </ul>
 
-            <p className="mt-3 text-sm text-ink/55">
-              Shipping {selected.shipping} · {selected.paymentNote}
+            <p className="text-sm text-ink/55">
+              {selected.fulfilment === "PICKUP" ? "Pickup" : "Shipping"}{" "}
+              {formatKes(selected.shipping)}
             </p>
-            <p className="mt-1 font-display text-xl font-bold">{formatKes(selected.total)}</p>
+            <p className="font-display text-xl font-bold">{formatKes(selected.total)}</p>
 
-            <div className="mt-4 grid gap-2">
+            <div className="grid gap-2">
+              {selected.status === "NEW" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setStatus(selected.id, OrderStatus.CONFIRMED)}
+                  className="rounded-md bg-brand py-2.5 text-sm font-semibold"
+                >
+                  Confirm (after call)
+                </button>
+              ) : null}
+              {selected.status === "CONFIRMED" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setStatus(selected.id, OrderStatus.PACKED)}
+                  className="rounded-md bg-brand py-2.5 text-sm font-semibold"
+                >
+                  Mark preparing / packed
+                </button>
+              ) : null}
+              {selected.status === "PACKED" && selected.fulfilment === "DELIVERY" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setStatus(selected.id, OrderStatus.DISPATCHED)}
+                  className="rounded-md border border-ink/15 py-2.5 text-sm font-semibold"
+                >
+                  Mark dispatched
+                </button>
+              ) : null}
+              {selected.status === "PACKED" && selected.fulfilment === "PICKUP" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setStatus(selected.id, OrderStatus.READY_FOR_PICKUP)}
+                  className="rounded-md border border-ink/15 py-2.5 text-sm font-semibold"
+                >
+                  Ready for pickup
+                </button>
+              ) : null}
+              {selected.status === "DISPATCHED" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setStatus(selected.id, OrderStatus.DELIVERED)}
+                  className="rounded-md bg-ink py-2.5 text-sm font-semibold text-white"
+                >
+                  Mark delivered
+                </button>
+              ) : null}
+              {selected.status === "READY_FOR_PICKUP" ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setStatus(selected.id, OrderStatus.COLLECTED)}
+                  className="rounded-md bg-ink py-2.5 text-sm font-semibold text-white"
+                >
+                  Mark collected
+                </button>
+              ) : null}
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => setStatus(selected.id, OrderStatus.PACKED)}
-                className="rounded-md bg-brand py-2.5 text-sm font-semibold text-ink hover:bg-brand-dark disabled:opacity-60"
+                onClick={() =>
+                  startTransition(async () => {
+                    const name = window.prompt("Rider name (optional)", selected.riderName) ?? "";
+                    const phone =
+                      window.prompt("Rider phone (optional)", selected.riderPhone) ?? "";
+                    await saveRiderDetails(selected.id, name, phone);
+                  })
+                }
+                className="rounded-md border border-ink/15 py-2 text-xs font-semibold"
               >
-                Mark as packed
-              </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="rounded-md bg-ink py-2.5 text-sm font-semibold text-white hover:bg-ink/90"
-              >
-                Print slip
+                Rider details
               </button>
               <a
+                href={`/order/${selected.trackingToken}/invoice`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md bg-ink py-2.5 text-center text-sm font-semibold text-white"
+              >
+                Print invoice
+              </a>
+              <a
                 href={whatsappHref(
-                  `Hi ${selected.customer}, this is Swiftmall about order #${selected.number}.`,
+                  `Hi ${selected.customer}, this is Swift Mall about order ${formatOrderNumber(selected.number)}.`,
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-md bg-[#25D366] py-2.5 text-center text-sm font-semibold text-white hover:brightness-95"
+                className="rounded-md bg-[#25D366] py-2.5 text-center text-sm font-semibold text-white"
               >
                 WhatsApp customer
               </a>
               <div className="rounded-md border border-ink/10 p-2">
-                <label className="block text-xs font-medium text-ink/55">Add note</label>
+                <label className="block text-xs font-medium text-ink/55">Internal note</label>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
                   className="mt-1 w-full resize-none rounded border-0 bg-transparent text-sm outline-none"
-                  placeholder="Internal note…"
                 />
                 <button
                   type="button"
                   disabled={pending}
                   onClick={saveNote}
-                  className="mt-1 text-xs font-semibold text-ink underline"
+                  className="mt-1 text-xs font-semibold underline"
                 >
                   Save note
                 </button>
               </div>
-              {selected.status === "PACKED" ? (
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => setStatus(selected.id, OrderStatus.DISPATCHED)}
-                  className="rounded-md border border-ink/15 py-2.5 text-sm font-semibold hover:bg-ink/5"
-                >
-                  Mark as dispatched
-                </button>
-              ) : null}
             </div>
           </aside>
         ) : null}

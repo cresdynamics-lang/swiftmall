@@ -4,8 +4,7 @@ import { business, confirmedValue, isTrustPageLive } from "@/lib/business";
 
 export const metadata: Metadata = {
   title: "Payment options | Swift Mall",
-  description:
-    "Pay on delivery, pay now with M-Pesa Paybill 880100, or pay a deposit. Swift Mall never asks for your M-Pesa PIN.",
+  description: `Pay on delivery, pay now with M-Pesa Paybill ${business.payments.paybill}, or pay a deposit. Swift Mall never asks for your M-Pesa PIN.`,
   robots: isTrustPageLive("payments") ? { index: true, follow: true } : { index: false, follow: false },
 };
 
@@ -18,7 +17,7 @@ export default function PaymentsPage() {
   return (
     <TrustPageShell
       title="Pay the way you like."
-      summary="Order, inspect, then pay. Delivered countrywide for KES 250."
+      summary={`Order, inspect, then pay. Delivered countrywide for KES ${business.shippingFlatKes}.`}
     >
       <TrustSection title="Pay on delivery">
         <p>

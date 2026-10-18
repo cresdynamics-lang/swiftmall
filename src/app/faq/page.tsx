@@ -49,6 +49,18 @@ const faqs = [
         a: `Delivery is a flat KES ${business.shippingFlatKes} countrywide.`,
       },
       {
+        q: "How fast is delivery in Nairobi?",
+        a: business.deliveryZones.nairobi.promise,
+      },
+      {
+        q: "How fast is delivery outside Nairobi?",
+        a: business.deliveryZones.upcountry.promise,
+      },
+      {
+        q: "Can I pick up from the shop?",
+        a: `Yes. ${business.shop.addressLine}. Hours: ${business.shop.hoursDisplay}. ${business.pickup.collectHint} Pickup fee KES ${business.pickup.feeKes}. ${business.pickup.afterHoursNote}`,
+      },
+      {
         q: "What if I am not at home on delivery day?",
         a: `Call or WhatsApp us on ${business.phone} so we can arrange another attempt. Keep your phone on.`,
       },

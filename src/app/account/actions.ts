@@ -33,6 +33,7 @@ export async function createTrackingPassword(formData: FormData) {
     where: { id: order.customer.id },
     data: { passwordHash: hashPassword(password) },
   });
+  if (!order.customer.email) throw new Error("Order not found for that email");
   await setCustomerSession(order.customer.id, order.customer.email);
   revalidatePath("/account");
   redirect("/account");
@@ -52,6 +53,7 @@ export async function customerLogin(formData: FormData) {
     redirect("/account?error=1");
   }
 
+  if (!customer.email) redirect("/account?error=1");
   await setCustomerSession(customer.id, customer.email);
   revalidatePath("/account");
   redirect("/account");

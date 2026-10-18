@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { TrustPageShell, TrustSection } from "@/components/trust/TrustPageShell";
-import { business, isTrustPageLive } from "@/lib/business";
+import {
+  business,
+  isTrustPageLive,
+  shopAddressDisplay,
+  shopHoursDisplay,
+} from "@/lib/business";
 
 export const metadata: Metadata = {
   title: "How to order | Swift Mall",
-  description:
-    "Order from Swift Mall in three steps. Pay on delivery, pay now with M-Pesa, or pay a deposit. Countrywide delivery at a flat KES 250.",
-  robots: isTrustPageLive("howToOrder") ? { index: true, follow: true } : { index: false, follow: false },
+  description: `Order from Swift Mall in three steps. Pay on delivery, pay now with M-Pesa, or pay a deposit. Delivery or pickup. Flat KES ${business.shippingFlatKes} delivery.`,
+  robots: isTrustPageLive("howToOrder")
+    ? { index: true, follow: true }
+    : { index: false, follow: false },
 };
 
 export default function HowToOrderPage() {
-  const paybillName = business.payments.paybillDisplayName.confirmed
-    ? business.payments.paybillDisplayName.value
-    : null;
-
   return (
     <TrustPageShell
       title="Ordering from Swift Mall takes three steps."
-      summary="Order, inspect, then pay. Delivered countrywide for KES 250."
+      summary={`Order, inspect, then pay. Delivered countrywide for KES ${business.shippingFlatKes}.`}
     >
       <TrustSection title="Step 1 — Pick your item">
         <p>
@@ -26,24 +27,42 @@ export default function HowToOrderPage() {
         </p>
       </TrustSection>
 
-      <TrustSection title="Step 2 — Tell us where to deliver">
+      <TrustSection title="Step 2 — Delivery or pickup">
         <p>
-          Enter your name, phone number and delivery area. You do not need an account.
+          Enter your name and Kenyan phone. Email is optional but encouraged for your confirmation
+          and tracking link. No account needed.
         </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>
+            <strong>Delivery:</strong> county, town or area, street and building, landmark. Fee KES{" "}
+            {business.shippingFlatKes}. Nairobi: {business.deliveryZones.nairobi.promise} Outside
+            Nairobi: {business.deliveryZones.upcountry.promise}
+          </li>
+          <li>
+            <strong>Pickup:</strong> {shopAddressDisplay()}. Hours: {shopHoursDisplay()}.{" "}
+            {business.pickup.collectHint} Fee KES {business.pickup.feeKes}.
+          </li>
+        </ul>
       </TrustSection>
 
       <TrustSection title="Step 3 — Choose how to pay">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Pay on delivery — see the item, then pay the rider.</li>
-          <li>Pay now with M-Pesa — pay the full amount before we dispatch.</li>
-          <li>Pay a deposit — pay a share now via M-Pesa, balance on delivery.</li>
+          <li>
+            Delivery: pay on delivery (inspect, then pay); pay now with M-Pesa (full amount); or pay
+            a deposit of exactly {Math.round(business.payments.depositShare * 100)}% now with the
+            balance on delivery.
+          </li>
+          <li>
+            Pickup: pay when you collect (inspect, then pay) or pay now with M-Pesa. No deposit for
+            pickup.
+          </li>
         </ul>
       </TrustSection>
 
       <TrustSection title="What happens next">
         <p>
-          We call or WhatsApp you to confirm the order. We send you dispatch details when the
-          parcel is on the way. You pay on delivery if you chose that option.
+          Every order is confirmed by a real person by call or WhatsApp before dispatch. We send
+          tracking updates when the status changes.
         </p>
       </TrustSection>
 
@@ -54,25 +73,12 @@ export default function HowToOrderPage() {
           <li>Account number: {business.payments.accountNumber}</li>
           <li>Enter the amount and your M-Pesa PIN.</li>
         </ol>
-        {paybillName ? (
-          <p className="mt-2">
-            On the confirmation screen you should see: <strong>{paybillName}</strong>.
-          </p>
-        ) : (
-          <p className="mt-2">
-            Check that the Paybill business name on your M-Pesa screen matches Swift Mall before
-            you finish. If anything looks wrong, stop and call us on {business.phone}.
-          </p>
-        )}
+        <p className="mt-2">
+          Confirm the business name on your M-Pesa screen before you finish. If it does not look
+          right, stop and call {business.phone}. {business.brandName} will never ask for your
+          M-Pesa PIN.
+        </p>
       </TrustSection>
-
-      <p>
-        More answers in the{" "}
-        <Link href="/faq" className="font-semibold text-ink underline">
-          FAQ
-        </Link>
-        .
-      </p>
     </TrustPageShell>
   );
 }

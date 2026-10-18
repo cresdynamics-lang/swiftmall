@@ -36,7 +36,7 @@ const defaults: RuntimeSettings = {
   bankAccount: storeConfig.payments.bankAccount,
   whatsappNumber: storeConfig.whatsappNumber,
   phoneNumber: storeConfig.phoneNumber,
-  contactEmail: storeConfig.contactEmail,
+  contactEmail: storeConfig.contactEmail, // swiftmall@gmail.com via business config
   flashEndsAt: null,
 };
 
