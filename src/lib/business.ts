@@ -17,16 +17,16 @@ export const business = {
 
   phone: "0727383847",
   whatsapp: "0727383847",
-  /** Public contact / Reply-To — owner final answer */
-  email: "swiftmall@gmail.com",
-  returnsEmail: "swiftmall@gmail.com",
+  /** Public contact / Reply-To — orders, notifications, communications */
+  email: "ww.swiftmall@gmail.com",
+  returnsEmail: "ww.swiftmall@gmail.com",
 
   /** Mail From must be a domain address (Resend); Reply-To uses email above */
   mail: {
     fromName: "Swift Mall",
     fromAddress: "noreply@swiftmall.co.ke",
-    replyTo: "swiftmall@gmail.com",
-    alertRecipients: ["swiftmall@gmail.com"] as const,
+    replyTo: "ww.swiftmall@gmail.com",
+    alertRecipients: ["ww.swiftmall@gmail.com"] as const,
   },
 
   shippingFlatKes: 250,

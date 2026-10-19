@@ -463,7 +463,7 @@ async function main() {
       bankAccount: "9211670018",
       whatsappNumber: "0727383847",
       phoneNumber: "0727383847",
-      contactEmail: "swiftmall@gmail.com",
+      contactEmail: "ww.swiftmall@gmail.com",
     },
   });
 

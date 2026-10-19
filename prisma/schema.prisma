@@ -255,7 +255,7 @@ model StoreSettings {
   bankAccount     String    @default("9211670018")
   whatsappNumber  String    @default("0727383847")
   phoneNumber     String    @default("0727383847")
-  contactEmail    String    @default("swiftmall@gmail.com")
+  contactEmail    String    @default("ww.swiftmall@gmail.com")
   flashEndsAt     DateTime?
   updatedAt       DateTime  @updatedAt
 }
